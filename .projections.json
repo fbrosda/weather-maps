@@ -1,0 +1,29 @@
+{
+  "*": {
+    "console": "node",
+    "start": "npm run-script start",
+    "make": "npm run-script"
+  },
+  "src/*.ts": {
+    "type": "source",
+    "dispatch": "npx eslint --format compact --fix %",
+    "make": "npm run-script build:server"
+  },
+  "resources/script/*.ts": {
+    "type": "source",
+    "dispatch": "npx eslint --format compact --fix %",
+    "make": "npm run-script build:client"
+  },
+  "resources/*.html": {
+    "type": "html",
+    "dispatch": "npx prettier --write %"
+  },
+  "resources/*.css": {
+    "type": "css",
+    "dispatch": "npx prettier --write %"
+  },
+  "*.json": {
+    "type": "config",
+    "dispatch": "npx prettier --write %"
+  }
+}

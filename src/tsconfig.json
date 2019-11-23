@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "module": "commonJS",
+    "noImplicitAny": true,
+    "outDir": "../dist",
+    "removeComments": true,
+    "rootDir": ".",
+    "target": "es2019"
+  },
+  "include": ["./**/*.ts"]
+}

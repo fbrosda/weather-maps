@@ -1,0 +1,58 @@
+{
+  "name": "weather-maps",
+  "version": "0.0.1",
+  "description": "Various opengl mapbox weather maps",
+  "main": "index.ts",
+  "author": "Fabian Brosda",
+  "scripts": {
+    "build": "npm run-script build:server && npm run-script build:client",
+    "build:server": "npx tsc -p src/",
+    "postbuild:server": "cp accessToken.txt dist/",
+    "build:client": "npx tsc -p resources/script/",
+    "postbuild:client": "cp -r resources/{html,css,shader,img} dist/resources/",
+    "build:client:watch": "npx tsc -w -p resources/script/",
+    "start": "cd ./dist && node index.js",
+    "clean": "rm -rf dist/",
+    "version": "echo $npm_package_version"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/mapbox-gl": "^1.5.2",
+    "@types/node": "^12.12.11",
+    "@typescript-eslint/eslint-plugin": "^2.8.0",
+    "@typescript-eslint/parser": "^2.8.0",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "prettier": "^1.19.1",
+    "typescript": "^3.7.2"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint",
+      "prettier"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:prettier/recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2019
+    },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "rules": {
+      "@typescript-eslint/no-use-before-define": [
+        "error",
+        {
+          "functions": false
+        }
+      ]
+    }
+  }
+}
