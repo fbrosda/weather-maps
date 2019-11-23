@@ -1,12 +1,21 @@
 {
   "compilerOptions": {
-    "alwaysStrict": true,
     "module": "commonJS",
-    "noImplicitAny": true,
     "outDir": "../dist",
     "removeComments": true,
-    "rootDir": ".",
-    "target": "es2019"
+    "rootDir": "../",
+    "target": "es2019",
+
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmitOnError": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true
   },
   "include": ["./**/*.ts"]
 }
