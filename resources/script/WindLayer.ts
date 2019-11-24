@@ -74,7 +74,7 @@ export default class WindLayer extends AbstractGlLayer {
       this.loadShaderSource(gl, "wind_update", gl.FRAGMENT_SHADER)
     ]);
     const windDataPromise = this.loadWindData(gl);
-    this.setNumParticles(gl, 653560);
+    this.setNumParticles(gl, 2**16);
 
     this.drawProgram = this.createProgram(gl, drawVert, drawFrag);
     this.screenProgram = this.createProgram(gl, quadVert, screenFrag);
@@ -138,6 +138,12 @@ export default class WindLayer extends AbstractGlLayer {
   }
 
   doRender(gl: WebGLRenderingContext, matrix: number[]): void {
+    if (this.windTexture) {
+      this.bindTexture(gl, this.windTexture, 0);
+    }
+    if (this.particleStateTexture0) {
+      this.bindTexture(gl, this.particleStateTexture0, 1);
+    }
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     if (this.screenTexture) {
@@ -249,6 +255,7 @@ export default class WindLayer extends AbstractGlLayer {
 
       gl.uniform1i(uniMap.get("u_wind") ?? null, 0);
       gl.uniform1i(uniMap.get("u_particles") ?? null, 1);
+      // gl.uniformMatrix4fv(uniMap.get("u_matrix") || null, false, matrix);
 
       gl.uniform1f(uniMap.get("u_rand_seed") || null, Math.random());
       gl.uniform2f(

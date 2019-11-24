@@ -48,7 +48,7 @@ void main() {
     vec2 offset = vec2(velocity.x / distortion, -velocity.y) * 0.0001 * u_speed_factor;
 
     // update particle position, wrapping around the date line
-    pos = fract( pos + offset);
+    pos = fract(1.0 + pos + offset);
 
     // a random seed to use for the particle drop
     vec2 seed = (pos + v_tex_pos) * u_rand_seed;

@@ -1,6 +1,7 @@
 import DataFetcher from "./DataFetcher";
 import { getContent } from "../util.js";
 import { promises as fs } from "fs";
+// import * as asdf from "fs";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { PNG } from "pngjs";
@@ -11,27 +12,27 @@ export default class WindDataFetcher extends DataFetcher {
   constructor() {
     super();
 
-    this.baseurl = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_1p00.pl";
+    this.baseurl = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl";
   }
 
   async fetchJson(query: object): Promise<object> {
     const jsonName = `${GFS_DATE}.json`;
-    return this.fetch( jsonName, query );
+    return this.fetch(jsonName, query);
   }
 
   async fetchPng(query: object): Promise<Buffer> {
     const pngName = `${GFS_DATE}.png`;
-    return this.fetch( pngName, query );
+    return this.fetch(pngName, query);
   }
 
   private async fetch(name: string, query: object): Promise<Buffer> {
     try {
-      await fs.stat( name );
-      const file = await fs.readFile( name );
+      await fs.stat(name);
+      const file = await fs.readFile(name);
       return file;
-    } catch( e ) {
+    } catch (e) {
       await this.loadData(query);
-      const file = await fs.readFile( name );
+      const file = await fs.readFile(name);
       return file;
     }
   }
@@ -53,11 +54,14 @@ export default class WindDataFetcher extends DataFetcher {
       "grib_set -r -s packingType=grid_simple /tmp/vtmp.grib /tmp/vtmp.grib"
     );
 
-    const utmp = await promisify(exec)("grib_dump -j /tmp/utmp.grib");
-    const vtmp = await promisify(exec)("grib_dump -j /tmp/vtmp.grib");
+    await promisify(exec)("grib_dump -j /tmp/utmp.grib > /tmp/utmp.json");
+    await promisify(exec)("grib_dump -j /tmp/vtmp.grib > /tmp/vtmp.json");
 
-    const utmpData = JSON.parse(utmp.stdout);
-    const vtmpData = JSON.parse(vtmp.stdout);
+    const utmpRaw = await fs.readFile("/tmp/utmp.json");
+    const vtmpRaw = await fs.readFile("/tmp/vtmp.json");
+
+    const utmpData = JSON.parse(utmpRaw as any);
+    const vtmpData = JSON.parse(vtmpRaw as any);
 
     const u = utmpData.messages[0].reduce(
       (acc: any, cur: any) => ((acc[cur.key] = cur.value), acc),
@@ -92,11 +96,12 @@ export default class WindDataFetcher extends DataFetcher {
         png.data[i + 3] = 255;
       }
     }
+    // png.pack().pipe(asdf.createWriteStream('out.png'));
     const pngBuffer = PNG.sync.write(png, {
       colorType: 2,
       filterType: 4
     });
-    await fs.writeFile( GFS_DATE+ '.png', pngBuffer );
+    await fs.writeFile(GFS_DATE + ".png", pngBuffer);
     await fs.writeFile(
       GFS_DATE + ".json",
       JSON.stringify(
@@ -124,7 +129,7 @@ export default class WindDataFetcher extends DataFetcher {
       const BBOX = "leftlon=0&rightlon=360&toplat=90&bottomlat=-90";
       const LEVEL = "lev_10_m_above_ground=on";
 
-      return `${this.baseurl}?file=gfs.t${GFS_TIME}z.pgrb2.1p00.f000&${LEVEL}&${BBOX}&dir=%2Fgfs.${GFS_DATE}%2F${GFS_TIME}`;
+      return `${this.baseurl}?file=gfs.t${GFS_TIME}z.pgrb2.0p25.f000&${LEVEL}&${BBOX}&dir=%2Fgfs.${GFS_DATE}%2F${GFS_TIME}`;
     }
   }
 }
