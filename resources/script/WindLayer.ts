@@ -51,7 +51,7 @@ export default class WindLayer extends AbstractGlLayer {
   constructor(map: mapboxgl.Map) {
     super("wind", map);
 
-    this.fadeOpacity = 0.996;
+    this.fadeOpacity = 0.96;
     this.speedFactor = 0.25;
     this.dropRate = 0.003;
     this.dropRateBump = 0.01;
@@ -129,67 +129,29 @@ export default class WindLayer extends AbstractGlLayer {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     if (this.backgroundTexture) {
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       this.drawTexture(gl, this.backgroundTexture, this.fadeOpacity);
+      gl.disable(gl.BLEND);
     }
     this.drawParticles(gl);
   }
 
   doRender(gl: WebGLRenderingContext /*, matrix: number[]*/): void {
-    if (this.windTexture) {
-      // console.log(matrix);
-      // gl.disable(gl.DEPTH_TEST);
-      // gl.disable(gl.STENCIL_TEST);
-
-      if (this.windTexture) {
-        this.bindTexture(gl, this.windTexture, 0);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      if (this.screenTexture) {
+        this.drawTexture(gl, this.screenTexture, 1.0);
       }
-      if (this.particleStateTexture0) {
-        this.bindTexture(gl, this.particleStateTexture0, 1);
-      }
+      gl.disable(gl.BLEND);
 
-      this.drawScreen(gl);
+      // save the current screen as the background for the next frame
+      const temp = this.backgroundTexture;
+      this.backgroundTexture = this.screenTexture;
+      this.screenTexture = temp;
 
       this.updateParticles(gl);
       this.map.resize();
-    }
-  }
-
-  setNumParticles(gl: WebGLRenderingContext, numParticles: number): void {
-    // we create a square texture where each pixel will hold a particle position encoded as RGBA
-    const particleRes = (this.particleStateResolution = Math.ceil(
-      Math.sqrt(numParticles)
-    ));
-    this.numParticles = particleRes * particleRes;
-
-    const particleState = new Uint8Array(this.numParticles * 4);
-    for (let i = 0; i < particleState.length; i++) {
-      particleState[i] = Math.floor(Math.random() * 256); // randomize the initial particle positions
-    }
-    // textures to hold the particle state for the current and the next frame
-    this.particleStateTexture0 = this.createTexture(
-      gl,
-      gl.NEAREST,
-      particleState,
-      particleRes,
-      particleRes
-    );
-    this.particleStateTexture1 = this.createTexture(
-      gl,
-      gl.NEAREST,
-      particleState,
-      particleRes,
-      particleRes
-    );
-
-    const particleIndices = new Float32Array(this.numParticles);
-    for (let i = 0; i < this.numParticles; i++) {
-      particleIndices[i] = i;
-    }
-    this.particleIndexBuffer = this.createBuffer(gl, particleIndices);
-  }
-
-  getNumParticles(): number {
-    return this.numParticles;
   }
 
   async loadWindData(gl: WebGLRenderingContext): Promise<void> {
@@ -205,33 +167,6 @@ export default class WindLayer extends AbstractGlLayer {
         resolve();
       };
     });
-  }
-
-  drawScreen(gl: WebGLRenderingContext) {
-    // draw the screen into a temporary framebuffer to retain it as the background on the next frame
-    // if (this.framebuffer) {
-    //   this.bindFramebuffer(gl, this.framebuffer, this.screenTexture);
-    // }
-    // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-    // if (this.backgroundTexture) {
-    //   this.drawTexture(gl, this.backgroundTexture, this.fadeOpacity);
-    // }
-    // this.drawParticles(gl);
-
-    // this.bindFramebuffer(gl, null);
-    // enable blending to support drawing on top of an existing background (e.g. a map)
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    if (this.screenTexture) {
-      this.drawTexture(gl, this.screenTexture, 1.0);
-    }
-    gl.disable(gl.BLEND);
-
-    // save the current screen as the background for the next frame
-    const temp = this.backgroundTexture;
-    this.backgroundTexture = this.screenTexture;
-    this.screenTexture = temp;
   }
 
   drawTexture(
@@ -341,6 +276,44 @@ export default class WindLayer extends AbstractGlLayer {
       this.particleStateTexture0 = this.particleStateTexture1;
       this.particleStateTexture1 = temp;
     }
+  }
+
+  setNumParticles(gl: WebGLRenderingContext, numParticles: number): void {
+    // we create a square texture where each pixel will hold a particle position encoded as RGBA
+    const particleRes = (this.particleStateResolution = Math.ceil(
+      Math.sqrt(numParticles)
+    ));
+    this.numParticles = particleRes * particleRes;
+
+    const particleState = new Uint8Array(this.numParticles * 4);
+    for (let i = 0; i < particleState.length; i++) {
+      particleState[i] = Math.floor(Math.random() * 256); // randomize the initial particle positions
+    }
+    // textures to hold the particle state for the current and the next frame
+    this.particleStateTexture0 = this.createTexture(
+      gl,
+      gl.NEAREST,
+      particleState,
+      particleRes,
+      particleRes
+    );
+    this.particleStateTexture1 = this.createTexture(
+      gl,
+      gl.NEAREST,
+      particleState,
+      particleRes,
+      particleRes
+    );
+
+    const particleIndices = new Float32Array(this.numParticles);
+    for (let i = 0; i < this.numParticles; i++) {
+      particleIndices[i] = i;
+    }
+    this.particleIndexBuffer = this.createBuffer(gl, particleIndices);
+  }
+
+  getNumParticles(): number {
+    return this.numParticles;
   }
 }
 
