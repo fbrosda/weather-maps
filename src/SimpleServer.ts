@@ -21,10 +21,7 @@ export default class SimpleServer extends Server {
     });
   }
 
-  async requestFile(
-    res: ServerResponse,
-    reqPath: string
-  ): Promise<void> {
+  async requestFile(res: ServerResponse, reqPath: string): Promise<void> {
     const filePath = "." + reqPath;
     const ext = extname(filePath);
     let contentType;
@@ -58,22 +55,26 @@ export default class SimpleServer extends Server {
     url: UrlWithParsedQuery
   ): Promise<void> {
     const { pathname, query } = url;
-    const type = basename(pathname || "");
+    const type = basename(pathname ?? "").split(".")[0];
+    const ext = extname(pathname ?? "");
     const fetcher: DataFetcher | undefined = this.fetcherFactory.get(type);
 
     if (fetcher) {
-      const data = await fetcher.fetch(query);
-
-      res.writeHead(200, { "Content-Type": "image/png" });
-      res.end(data);
+      if (ext === ".png") {
+        const data = await fetcher.fetchPng(query);
+        res.writeHead(200, { "Content-Type": "image/png" });
+        res.end(data);
+      } else {
+        const data = await fetcher.fetchJson(query);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(data);
+      }
     } else {
       this.handleError(res, new Error("No fetcher found"));
     }
   }
 
-  async requestServerInfo(
-    res: ServerResponse
-  ): Promise<void> {
+  async requestServerInfo(res: ServerResponse): Promise<void> {
     try {
       const ret = {
         memory: process.memoryUsage()
@@ -85,7 +86,10 @@ export default class SimpleServer extends Server {
     }
   }
 
-  protected handleError(res: ServerResponse, error: NodeJS.ErrnoException): void {
+  protected handleError(
+    res: ServerResponse,
+    error: NodeJS.ErrnoException
+  ): void {
     log.error(error);
 
     if (error.code === "ENOENT" || error.message.endsWith("not found")) {
@@ -98,7 +102,11 @@ export default class SimpleServer extends Server {
   }
 }
 
-function requestHandler(this: SimpleServer, req: IncomingMessage, res: ServerResponse): void {
+function requestHandler(
+  this: SimpleServer,
+  req: IncomingMessage,
+  res: ServerResponse
+): void {
   if (!req.url) {
     return;
   }

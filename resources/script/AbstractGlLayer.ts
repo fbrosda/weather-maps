@@ -8,8 +8,6 @@ export default abstract class AbstractGlLayer
   renderingMode: "2d";
   visible: boolean;
 
-  program?: WebGLProgram;
-
   attributeMap: Map<string, GLint>;
   uniformMap: Map<string, WebGLUniformLocation>;
 
@@ -26,7 +24,7 @@ export default abstract class AbstractGlLayer
     this.attributeMap = new Map();
     this.uniformMap = new Map();
 
-    map.on("load", () => map.addLayer(this));
+    // map.on("load", () => map.addLayer(this));
   }
 
   toggle(): void {
@@ -39,39 +37,6 @@ export default abstract class AbstractGlLayer
       this.doRender(gl, matrix);
     }
   }
-
-  // async loadShaders(gl: WebGLRenderingContext): Promise<WebGLProgram | void> {
-  //   const fragURL = `/resources/shader/${this.id}.frag`;
-  //   const vertURL = `/resources/shader/${this.id}.vert`;
-
-  //   const fragSource = await fetch<string>(fragURL);
-  //   const vertSource = await fetch<string>(vertURL);
-
-  //   // create a vertex shader
-  //   const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  //   if (vertexShader) {
-  //     gl.shaderSource(vertexShader, vertSource);
-  //     gl.compileShader(vertexShader);
-  //   }
-
-  //   // create a fragment shader
-  //   const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  //   if (fragmentShader) {
-  //     gl.shaderSource(fragmentShader, fragSource);
-  //     gl.compileShader(fragmentShader);
-  //   }
-
-  //   // link the two shaders into a WebGL program
-  //   const program = gl.createProgram();
-  //   if (program && vertexShader && fragmentShader) {
-  //     this.program = program;
-  //     gl.attachShader(this.program, vertexShader);
-  //     gl.attachShader(this.program, fragmentShader);
-  //     gl.linkProgram(this.program);
-  //     return program;
-  //   }
-  //   return;
-  // }
 
   protected loadShaderSource(
     gl: WebGLRenderingContext,
@@ -131,6 +96,96 @@ export default abstract class AbstractGlLayer
     }
 
     return program;
+  }
+
+  protected createTexture(
+    gl: WebGLRenderingContext,
+    filter: GLint,
+    data: Uint8Array | HTMLImageElement,
+    width?: number,
+    height?: number
+  ): WebGLTexture {
+    const texture = gl.createTexture();
+    if (!texture) {
+      throw new Error("Could not create texture!");
+    }
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+    if (width && height && data instanceof Uint8Array) {
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        width,
+        height,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        data
+      );
+    } else if (data instanceof HTMLImageElement) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    }
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return texture;
+  }
+
+  protected bindTexture(
+    gl: WebGLRenderingContext,
+    texture: WebGLTexture,
+    unit: number
+  ): void {
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+  }
+
+  protected createBuffer(
+    gl: WebGLRenderingContext,
+    data: Float32Array
+  ): WebGLBuffer {
+    const buffer = gl.createBuffer();
+    if (!buffer) {
+      throw new Error("Could not create buffer!");
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    return buffer;
+  }
+
+  protected bindAttribute(
+    gl: WebGLRenderingContext,
+    buffer: WebGLBuffer,
+    attribute: string,
+    numComponents: number
+  ): void {
+    const glAttribute = this.attributeMap.get(attribute) ?? -1;
+
+    if (glAttribute > -1) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.enableVertexAttribArray(glAttribute);
+      gl.vertexAttribPointer(glAttribute, numComponents, gl.FLOAT, false, 0, 0);
+    }
+  }
+
+  protected bindFramebuffer(
+    gl: WebGLRenderingContext,
+    framebuffer: WebGLFramebuffer | null,
+    texture?: WebGLTexture
+  ): void {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    if (texture) {
+      gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        texture,
+        0
+      );
+    }
   }
 
   private createShader(

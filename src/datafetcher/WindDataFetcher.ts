@@ -5,6 +5,8 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { PNG } from "pngjs";
 
+const GFS_DATE = "20191123";
+
 export default class WindDataFetcher extends DataFetcher {
   constructor() {
     super();
@@ -12,7 +14,29 @@ export default class WindDataFetcher extends DataFetcher {
     this.baseurl = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_1p00.pl";
   }
 
-  async fetch(query: object): Promise<Buffer> {
+  async fetchJson(query: object): Promise<object> {
+    const jsonName = `${GFS_DATE}.json`;
+    return this.fetch( jsonName, query );
+  }
+
+  async fetchPng(query: object): Promise<Buffer> {
+    const pngName = `${GFS_DATE}.png`;
+    return this.fetch( pngName, query );
+  }
+
+  private async fetch(name: string, query: object): Promise<Buffer> {
+    try {
+      await fs.stat( name );
+      const file = await fs.readFile( name );
+      return file;
+    } catch( e ) {
+      await this.loadData(query);
+      const file = await fs.readFile( name );
+      return file;
+    }
+  }
+
+  private async loadData(query: object): Promise<boolean> {
     const url = this.getRequestUrl(query);
     const arr = await Promise.all([
       getContent(`${url}&var_UGRD=on`),
@@ -34,7 +58,6 @@ export default class WindDataFetcher extends DataFetcher {
 
     const utmpData = JSON.parse(utmp.stdout);
     const vtmpData = JSON.parse(vtmp.stdout);
-
 
     const u = utmpData.messages[0].reduce(
       (acc: any, cur: any) => ((acc[cur.key] = cur.value), acc),
@@ -69,16 +92,34 @@ export default class WindDataFetcher extends DataFetcher {
         png.data[i + 3] = 255;
       }
     }
-
-    return PNG.sync.write(png, {
+    const pngBuffer = PNG.sync.write(png, {
       colorType: 2,
-      filterType: 4,
+      filterType: 4
     });
+    await fs.writeFile( GFS_DATE+ '.png', pngBuffer );
+    await fs.writeFile(
+      GFS_DATE + ".json",
+      JSON.stringify(
+        {
+          source: "http://nomads.ncep.noaa.gov",
+          // date: formatDate(u.dataDate + '', u.dataTime),
+          width: width,
+          height: height,
+          uMin: u.minimum,
+          uMax: u.maximum,
+          vMin: v.minimum,
+          vMax: v.maximum
+        },
+        null,
+        2
+      ) + "\n"
+    );
+
+    return true;
   }
 
   private getRequestUrl(query: object): string {
     if (query || true) {
-      const GFS_DATE = "20191123";
       const GFS_TIME = "00"; // 00, 06, 12, 18
       const BBOX = "leftlon=0&rightlon=360&toplat=90&bottomlat=-90";
       const LEVEL = "lev_10_m_above_ground=on";

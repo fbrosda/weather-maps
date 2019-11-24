@@ -5,5 +5,6 @@ export default abstract class DataFetcher {
     this.baseurl = "";
   }
 
-  abstract fetch(param: object): object;
+  abstract fetchPng(param: object): object;
+  abstract fetchJson(param: object): object;
 }
