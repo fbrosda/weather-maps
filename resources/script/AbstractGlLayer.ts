@@ -1,15 +1,17 @@
 import { fetch } from "./util.js";
 
-export default abstract class AbstractGlLayer
-  implements mapboxgl.CustomLayerInterface {
+export type ExtProgram = {
+  program: WebGLProgram;
+  attributeMap: Map<string, GLint>;
+  uniformMap: Map<string, WebGLUniformLocation>;
+};
+
+export abstract class AbstractGlLayer implements mapboxgl.CustomLayerInterface {
   id: string;
   map: mapboxgl.Map;
   type: "custom";
   renderingMode: "2d";
   visible: boolean;
-
-  attributeMap: Map<string, GLint>;
-  uniformMap: Map<string, WebGLUniformLocation>;
 
   abstract onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): void;
   abstract doRender(gl: WebGLRenderingContext, matrix: number[]): void;
@@ -21,10 +23,7 @@ export default abstract class AbstractGlLayer
     this.renderingMode = "2d";
     this.visible = true;
 
-    this.attributeMap = new Map();
-    this.uniformMap = new Map();
-
-    // map.on("load", () => map.addLayer(this));
+    map.on("load", () => map.addLayer(this));
   }
 
   toggle(): void {
@@ -53,7 +52,7 @@ export default abstract class AbstractGlLayer
     gl: WebGLRenderingContext,
     vertexSource: string,
     fragmentSource: string
-  ): WebGLProgram {
+  ): ExtProgram {
     const program = gl.createProgram();
     if (!program) {
       throw new Error("Could not create WebGLProgram!");
@@ -74,11 +73,16 @@ export default abstract class AbstractGlLayer
       throw new Error(gl.getProgramInfoLog(program) || "GLProgram error!");
     }
 
+    const ret: ExtProgram = {
+      program: program,
+      attributeMap: new Map(),
+      uniformMap: new Map()
+    };
     const numAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
     for (let i = 0; i < numAttributes; i++) {
       const attribute = gl.getActiveAttrib(program, i);
       if (attribute) {
-        this.attributeMap.set(
+        ret.attributeMap.set(
           attribute.name,
           gl.getAttribLocation(program, attribute.name)
         );
@@ -90,12 +94,12 @@ export default abstract class AbstractGlLayer
       if (uniform) {
         const location = gl.getUniformLocation(program, uniform.name);
         if (location) {
-          this.uniformMap.set(uniform.name, location);
+          ret.uniformMap.set(uniform.name, location);
         }
       }
     }
 
-    return program;
+    return ret;
   }
 
   protected createTexture(
@@ -159,16 +163,12 @@ export default abstract class AbstractGlLayer
   protected bindAttribute(
     gl: WebGLRenderingContext,
     buffer: WebGLBuffer,
-    attribute: string,
+    attribute: GLint,
     numComponents: number
   ): void {
-    const glAttribute = this.attributeMap.get(attribute) ?? -1;
-
-    if (glAttribute > -1) {
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.enableVertexAttribArray(glAttribute);
-      gl.vertexAttribPointer(glAttribute, numComponents, gl.FLOAT, false, 0, 0);
-    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.enableVertexAttribArray(attribute);
+    gl.vertexAttribPointer(attribute, numComponents, gl.FLOAT, false, 0, 0);
   }
 
   protected bindFramebuffer(
@@ -177,6 +177,7 @@ export default abstract class AbstractGlLayer
     texture?: WebGLTexture
   ): void {
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
     if (texture) {
       gl.framebufferTexture2D(
         gl.FRAMEBUFFER,

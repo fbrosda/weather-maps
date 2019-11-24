@@ -1,11 +1,10 @@
 declare let mapboxgl: typeof import("mapbox-gl");
 
-import AbstractGlLayer from "./AbstractGlLayer.js";
+import { AbstractGlLayer, ExtProgram } from "./AbstractGlLayer.js";
 
 export default class TriangleLayer extends AbstractGlLayer {
-  program?: WebGLProgram;
+  program?: ExtProgram;
   buffer?: WebGLBuffer | null;
-
 
   constructor(map: mapboxgl.Map) {
     super("triangle", map);
@@ -47,13 +46,16 @@ export default class TriangleLayer extends AbstractGlLayer {
     if (!this.program) {
       return;
     }
-    const uMatrix = this.uniformMap.get("u_matrix") ?? -1;
+    const uMatrix = this.program.uniformMap.get("u_matrix") ?? -1;
 
-    gl.useProgram(this.program);
+    gl.useProgram(this.program.program);
     gl.uniformMatrix4fv(uMatrix, false, matrix);
 
     if (this.buffer) {
-      this.bindAttribute(gl, this.buffer, "a_pos", 2);
+      const aPos = this.program.attributeMap.get( "a_pos" );
+      if( aPos ) {
+        this.bindAttribute(gl, this.buffer, aPos, 2);
+      }
 
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
