@@ -51,7 +51,7 @@ export default class WindLayer extends AbstractGlLayer {
   constructor(map: mapboxgl.Map) {
     super("wind", map);
 
-    this.fadeOpacity = 0.50;
+    this.fadeOpacity = 0.5;
     this.speedFactor = 0.5;
     this.dropRate = 0.003;
     this.dropRateBump = 0.01;
@@ -74,7 +74,7 @@ export default class WindLayer extends AbstractGlLayer {
       this.loadShaderSource(gl, "wind_update", gl.FRAGMENT_SHADER)
     ]);
     const windDataPromise = this.loadWindData(gl);
-    this.setNumParticles(gl, 2**16);
+    this.setNumParticles(gl, 2 ** 16);
 
     this.drawProgram = this.createProgram(gl, drawVert, drawFrag);
     this.screenProgram = this.createProgram(gl, quadVert, screenFrag);
@@ -137,7 +137,7 @@ export default class WindLayer extends AbstractGlLayer {
     this.drawParticles(gl, matrix);
   }
 
-  doRender(gl: WebGLRenderingContext, matrix: number[]): void {
+  doRender(gl: WebGLRenderingContext): void {
     if (this.windTexture) {
       this.bindTexture(gl, this.windTexture, 0);
     }
@@ -156,7 +156,7 @@ export default class WindLayer extends AbstractGlLayer {
     this.backgroundTexture = this.screenTexture;
     this.screenTexture = temp;
 
-    this.updateParticles(gl, matrix);
+    this.updateParticles(gl);
     this.map.resize();
   }
 
@@ -168,7 +168,7 @@ export default class WindLayer extends AbstractGlLayer {
     image.src = "/data/wind.png";
 
     return new Promise(resolve => {
-      image.onload = () => {
+      image.onload = (): void => {
         this.windTexture = this.createTexture(gl, gl.LINEAR, image);
         resolve();
       };
@@ -179,7 +179,7 @@ export default class WindLayer extends AbstractGlLayer {
     gl: WebGLRenderingContext,
     texture: WebGLTexture,
     opacity: number
-  ) {
+  ): void {
     if (this.screenProgram) {
       gl.useProgram(this.screenProgram.program);
       const uniMap = this.screenProgram.uniformMap;
@@ -196,7 +196,7 @@ export default class WindLayer extends AbstractGlLayer {
     }
   }
 
-  drawParticles(gl: WebGLRenderingContext, matrix: number[]) {
+  drawParticles(gl: WebGLRenderingContext, matrix: number[]): void {
     if (this.drawProgram) {
       gl.useProgram(this.drawProgram.program);
       const uniMap = this.drawProgram.uniformMap;
@@ -233,7 +233,7 @@ export default class WindLayer extends AbstractGlLayer {
     }
   }
 
-  updateParticles(gl: WebGLRenderingContext, _: number[]) {
+  updateParticles(gl: WebGLRenderingContext): void {
     if (this.framebuffer && this.particleStateTexture1) {
       this.bindFramebuffer(gl, this.framebuffer, this.particleStateTexture1);
       gl.viewport(
