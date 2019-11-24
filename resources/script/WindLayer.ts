@@ -1,4 +1,4 @@
-// declare let mapboxgl: typeof import("mapbox-gl");
+declare let mapboxgl: typeof import("mapbox-gl");
 
 import { AbstractGlLayer, ExtProgram } from "./AbstractGlLayer.js";
 import { fetch } from "./util.js";
@@ -51,8 +51,8 @@ export default class WindLayer extends AbstractGlLayer {
   constructor(map: mapboxgl.Map) {
     super("wind", map);
 
-    this.fadeOpacity = 0.96;
-    this.speedFactor = 0.25;
+    this.fadeOpacity = 0.50;
+    this.speedFactor = 0.5;
     this.dropRate = 0.003;
     this.dropRateBump = 0.01;
     this.numParticles = 0;
@@ -74,7 +74,7 @@ export default class WindLayer extends AbstractGlLayer {
       this.loadShaderSource(gl, "wind_update", gl.FRAGMENT_SHADER)
     ]);
     const windDataPromise = this.loadWindData(gl);
-    this.setNumParticles(gl, 65356);
+    this.setNumParticles(gl, 653560);
 
     this.drawProgram = this.createProgram(gl, drawVert, drawFrag);
     this.screenProgram = this.createProgram(gl, quadVert, screenFrag);
@@ -116,7 +116,7 @@ export default class WindLayer extends AbstractGlLayer {
     await windDataPromise;
   }
 
-  prerender(gl: WebGLRenderingContext /*, matrix: number[]*/): void {
+  prerender(gl: WebGLRenderingContext, matrix: number[]): void {
     if (this.windTexture) {
       this.bindTexture(gl, this.windTexture, 0);
     }
@@ -134,24 +134,24 @@ export default class WindLayer extends AbstractGlLayer {
       this.drawTexture(gl, this.backgroundTexture, this.fadeOpacity);
       gl.disable(gl.BLEND);
     }
-    this.drawParticles(gl);
+    this.drawParticles(gl, matrix);
   }
 
-  doRender(gl: WebGLRenderingContext /*, matrix: number[]*/): void {
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      if (this.screenTexture) {
-        this.drawTexture(gl, this.screenTexture, 1.0);
-      }
-      gl.disable(gl.BLEND);
+  doRender(gl: WebGLRenderingContext, matrix: number[]): void {
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    if (this.screenTexture) {
+      this.drawTexture(gl, this.screenTexture, 0.8);
+    }
+    gl.disable(gl.BLEND);
 
-      // save the current screen as the background for the next frame
-      const temp = this.backgroundTexture;
-      this.backgroundTexture = this.screenTexture;
-      this.screenTexture = temp;
+    // save the current screen as the background for the next frame
+    const temp = this.backgroundTexture;
+    this.backgroundTexture = this.screenTexture;
+    this.screenTexture = temp;
 
-      this.updateParticles(gl);
-      this.map.resize();
+    this.updateParticles(gl, matrix);
+    this.map.resize();
   }
 
   async loadWindData(gl: WebGLRenderingContext): Promise<void> {
@@ -190,7 +190,7 @@ export default class WindLayer extends AbstractGlLayer {
     }
   }
 
-  drawParticles(gl: WebGLRenderingContext) {
+  drawParticles(gl: WebGLRenderingContext, matrix: number[]) {
     if (this.drawProgram) {
       gl.useProgram(this.drawProgram.program);
       const uniMap = this.drawProgram.uniformMap;
@@ -206,6 +206,7 @@ export default class WindLayer extends AbstractGlLayer {
       gl.uniform1i(uniMap.get("u_wind") || null, 0);
       gl.uniform1i(uniMap.get("u_particles") || null, 1);
       gl.uniform1i(uniMap.get("u_color_ramp") || null, 2);
+      gl.uniformMatrix4fv(uniMap.get("u_matrix") || null, false, matrix);
 
       gl.uniform1f(
         uniMap.get("u_particles_res") || null,
@@ -226,7 +227,7 @@ export default class WindLayer extends AbstractGlLayer {
     }
   }
 
-  updateParticles(gl: WebGLRenderingContext) {
+  updateParticles(gl: WebGLRenderingContext, _: number[]) {
     if (this.framebuffer && this.particleStateTexture1) {
       this.bindFramebuffer(gl, this.framebuffer, this.particleStateTexture1);
       gl.viewport(
@@ -268,6 +269,20 @@ export default class WindLayer extends AbstractGlLayer {
       gl.uniform1f(uniMap.get("u_speed_factor") || null, this.speedFactor);
       gl.uniform1f(uniMap.get("u_drop_rate") || null, this.dropRate);
       gl.uniform1f(uniMap.get("u_drop_rate_bump") || null, this.dropRateBump);
+
+      const bounds = this.map.getBounds();
+      const nw = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
+      const se = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
+      gl.uniform2f(
+        uniMap.get("u_nw") || null,
+        Math.min(1, Math.max(nw.x, 0)),
+        Math.min(1, Math.max(nw.y, 0))
+      );
+      gl.uniform2f(
+        uniMap.get("u_se") || null,
+        Math.min(1, Math.max(se.x, 0)),
+        Math.min(1, Math.max(se.y, 0))
+      );
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 

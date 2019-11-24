@@ -5,6 +5,8 @@ uniform sampler2D u_wind;
 uniform vec2 u_wind_res;
 uniform vec2 u_wind_min;
 uniform vec2 u_wind_max;
+uniform vec2 u_nw;
+uniform vec2 u_se;
 uniform float u_rand_seed;
 uniform float u_speed_factor;
 uniform float u_drop_rate;
@@ -46,7 +48,7 @@ void main() {
     vec2 offset = vec2(velocity.x / distortion, -velocity.y) * 0.0001 * u_speed_factor;
 
     // update particle position, wrapping around the date line
-    pos = fract(1.0 + pos + offset);
+    pos = fract( pos + offset);
 
     // a random seed to use for the particle drop
     vec2 seed = (pos + v_tex_pos) * u_rand_seed;
@@ -58,7 +60,12 @@ void main() {
     vec2 random_pos = vec2(
         rand(seed + 1.3),
         rand(seed + 2.1));
-    pos = mix(pos, random_pos, drop);
+    if( u_nw.x <= pos.x && u_se.x >= pos.x &&
+            u_nw.y <= pos.y && u_se.y >= pos.y ) {
+        pos = mix(pos, u_nw + (random_pos * (u_se - u_nw)), drop);
+    } else {
+        pos = u_nw + (random_pos * (u_se - u_nw));
+    }
 
     // encode the new particle position back into RGBA
     gl_FragColor = vec4(

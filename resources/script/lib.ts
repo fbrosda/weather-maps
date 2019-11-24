@@ -10,6 +10,7 @@ async function init(): Promise<void> {
   const map = creatMap("map");
   const layer = new WindLayer(map);
 
+  (window as any).mpa = map;
   (window as any).layer = layer;
 }
 
