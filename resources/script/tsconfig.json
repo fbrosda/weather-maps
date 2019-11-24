@@ -1,16 +1,22 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "alwaysStrict": true,
-    "noImplicitAny": true,
     "outDir": "../../dist/resources/js/",
     "removeComments": true,
     "rootDir": ".",
     "target": "es2015",
-    "module": "es2015"
+    "module": "es2015",
+
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmitOnError": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true
   },
-  "types": [
-      "mapbox-gl"
-  ],
   "include": ["./**/*.ts"]
 }
