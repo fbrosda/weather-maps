@@ -3,6 +3,16 @@ export enum ShaderType {
   FRAGMENT = "frag"
 }
 
+export function loadImage(src: string): Promise<HTMLImageElement> {
+  const image = document.createElement("img");
+  image.src = src;
+  return new Promise(resolve => {
+    image.onload = (): void => {
+      resolve(image);
+    };
+  });
+}
+
 export function fetch<T>(url: string, method = "GET"): Promise<T> {
   const request = new XMLHttpRequest();
 

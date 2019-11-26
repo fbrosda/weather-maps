@@ -1,5 +1,6 @@
 import DataFetcher from "./DataFetcher";
 import WindDataFetcher from "./WindDataFetcher";
+import ColorRampFetcher from "./ColorRampFetcher";
 
 export default class DataFetcherFactory {
   map: Map<string, DataFetcher>;
@@ -24,6 +25,8 @@ export default class DataFetcherFactory {
   createFetcher(id: string): DataFetcher | undefined {
     if (id === "wind") {
       return new WindDataFetcher();
+    } else if( id === 'colorramp' ) {
+      return new ColorRampFetcher();
     }
     return;
   }
