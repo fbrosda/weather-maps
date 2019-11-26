@@ -13,6 +13,8 @@ class GlLayer extends AbstractGlLayer {
   numParticles = 0;
   particleStateResolution = 0;
 
+  isZoom = false;
+
   drawProgram?: ExtProgram;
   screenProgram?: ExtProgram;
   updateProgram?: ExtProgram;
@@ -48,7 +50,6 @@ class GlLayer extends AbstractGlLayer {
     const [drawVert, quadVert, drawFrag, screenFrag, updateFrag] = this.shaders;
 
     this.loadWindData();
-    this.setNumParticles(2 ** 14);
 
     this.drawProgram = this.createProgram(drawVert, drawFrag);
     this.screenProgram = this.createProgram(quadVert, screenFrag);
@@ -63,31 +64,37 @@ class GlLayer extends AbstractGlLayer {
     if (colorRamp) {
       this.colorRampTexture = this.createTexture(gl.LINEAR, colorRamp);
     }
+    this.clear();
+  }
 
-    const emptyPixels = new Uint8Array(gl.canvas.width * gl.canvas.height * 4);
-    this.backgroundTexture = this.createTexture(
-      gl.NEAREST,
-      emptyPixels,
-      gl.canvas.width,
-      gl.canvas.height
-    );
+  clear(): void {
+    this.setNumParticles(2 ** 14);
+    const width = this.gl.canvas.width;
+    const height = this.gl.canvas.height;
+    const emptyPixels = new Uint8Array(width * height * 4);
     this.screenTexture = this.createTexture(
-      gl.NEAREST,
+      this.gl.NEAREST,
       emptyPixels,
-      gl.canvas.width,
-      gl.canvas.height
+      width,
+      height
+    );
+    this.backgroundTexture = this.createTexture(
+      this.gl.NEAREST,
+      emptyPixels,
+      width,
+      height
     );
   }
 
   prerender(matrix: number[]): void {
-    if (!this.windData) {
+    if (!this.windData || this.isZoom) {
       return;
     }
     this.bindTextures();
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
     if (this.framebuffer) {
       this.bindFramebuffer(this.framebuffer, this.screenTexture);
     }
-    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
     if (this.backgroundTexture) {
       this.gl.enable(this.gl.BLEND);
@@ -100,7 +107,7 @@ class GlLayer extends AbstractGlLayer {
   }
 
   render(): void {
-    if (!this.windData) {
+    if (!this.windData || this.isZoom) {
       return;
     }
     const gl = this.gl;
@@ -319,6 +326,16 @@ export default class WindLayer extends AbstractCustomLayer {
 
   async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
     const shaders = await this.shaders;
-    this.layer = new GlLayer(shaders, map, gl);
+    const layer = new GlLayer(shaders, map, gl);
+    this.layer = layer;
+
+    const disableF = (): void => this.toggle();
+    const enableF = (): void => {
+      layer.clear();
+      this.toggle();
+    };
+
+    this.addListener(map, ["zoomstart", "mousedown"], disableF);
+    this.addListener(map, ["zoomend", "mouseup"], enableF);
   }
 }

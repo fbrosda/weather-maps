@@ -7,6 +7,7 @@ export default abstract class AbstractCustomLayer
   type: "custom" = "custom";
   renderingMode: "2d" = "2d";
   visible = true;
+  handler: (() => void)[] = [];
 
   layer?: AbstractGlLayer;
 
@@ -29,6 +30,7 @@ export default abstract class AbstractCustomLayer
   }
 
   onRemove(): void {
+    this.handler.forEach(h => h());
     delete this.layer;
   }
 
@@ -44,6 +46,21 @@ export default abstract class AbstractCustomLayer
       this.layer.gl = gl;
       this.layer.render(matrix);
     }
+  }
+
+  protected addListener(
+    map: mapboxgl.Map,
+    events: string[],
+    func: () => void
+  ): void {
+    this.handler.concat(
+      events.map(event => {
+        map.on(event, func);
+        return (): void => {
+          map.off(event, func);
+        };
+      })
+    );
   }
 
   protected loadShaderSource(type: ShaderType, name?: string): Promise<string> {
