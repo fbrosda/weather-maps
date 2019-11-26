@@ -16,11 +16,13 @@
   },
   "resources/*.html": {
     "type": "html",
-    "dispatch": "npx prettier --write %"
+    "dispatch": "npx prettier --write %",
+    "make": "npm run-script postbuild:client"
   },
   "resources/*.css": {
     "type": "css",
-    "dispatch": "npx prettier --write %"
+    "dispatch": "npx prettier --write %",
+    "make": "npm run-script postbuild:client"
   },
   "*.json": {
     "type": "config",

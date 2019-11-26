@@ -1,7 +1,9 @@
 declare let mapboxgl: typeof import("mapbox-gl");
 
-import { AbstractGlLayer, ExtProgram } from "./AbstractGlLayer.js";
-import { fetch } from "./util.js";
+import AbstractGlLayer from "./AbstractGlLayer.js";
+import AbstractCustomLayer from "./AbstractCustomLayer.js";
+import ExtProgram from "../util/ExtProgram.js";
+import { fetch, ShaderType } from "../util/util.js";
 
 const defaultRampColors = {
   0.0: "#3288bd",
@@ -14,11 +16,13 @@ const defaultRampColors = {
   1.0: "#d53e4f"
 };
 
-export default class WindLayer extends AbstractGlLayer {
-  fadeOpacity: number; // how fast the particle trails fade on each frame
-  speedFactor: number; // how fast the particles move
-  dropRate: number; // how often the particles move to a random place
-  dropRateBump: number; // drop rate increase relative to individual particle speed
+class GlLayer extends AbstractGlLayer {
+  fadeOpacity = 0.5; // how fast the particle trails fade on each frame
+  speedFactor = 0.5; // how fast the particles move
+  dropRate = 0.003; // how often the particles move to a random place
+  dropRateBump = 0.01; // drop rate increase relative to individual particle speed
+  numParticles = 0;
+  particleStateResolution = 0;
 
   drawProgram?: ExtProgram;
   screenProgram?: ExtProgram;
@@ -35,9 +39,6 @@ export default class WindLayer extends AbstractGlLayer {
 
   particleIndexBuffer?: WebGLBuffer;
 
-  numParticles: number;
-  particleStateResolution: number;
-
   windData?: {
     width: number;
     height: number;
@@ -48,65 +49,43 @@ export default class WindLayer extends AbstractGlLayer {
   };
   windTexture?: WebGLTexture;
 
-  constructor(map: mapboxgl.Map) {
-    super("wind", map);
-
-    this.fadeOpacity = 0.5;
-    this.speedFactor = 0.5;
-    this.dropRate = 0.003;
-    this.dropRateBump = 0.01;
-    this.numParticles = 0;
-    this.particleStateResolution = 0;
+  constructor(shaders: string[], map: mapboxgl.Map, gl: WebGLRenderingContext) {
+    super(shaders, map, gl);
+    this.init();
   }
 
-  async onAdd(_: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
-    const [
-      drawVert,
-      quadVert,
-      drawFrag,
-      screenFrag,
-      updateFrag
-    ] = await Promise.all([
-      this.loadShaderSource(gl, "wind_draw", gl.VERTEX_SHADER),
-      this.loadShaderSource(gl, "wind_quad", gl.VERTEX_SHADER),
-      this.loadShaderSource(gl, "wind_draw", gl.FRAGMENT_SHADER),
-      this.loadShaderSource(gl, "wind_screen", gl.FRAGMENT_SHADER),
-      this.loadShaderSource(gl, "wind_update", gl.FRAGMENT_SHADER)
-    ]);
-    const windDataPromise = this.loadWindData(gl);
-    this.setNumParticles(gl, 2 ** 16);
+  async init(): Promise<void> {
+    if (!this.gl) {
+      return;
+    }
+    const gl = this.gl;
 
-    this.drawProgram = this.createProgram(gl, drawVert, drawFrag);
-    this.screenProgram = this.createProgram(gl, quadVert, screenFrag);
-    this.updateProgram = this.createProgram(gl, quadVert, updateFrag);
+    const [drawVert, quadVert, drawFrag, screenFrag, updateFrag] = this.shaders;
+    const windDataPromise = this.loadWindData();
+    this.setNumParticles(2 ** 16);
+
+    this.drawProgram = this.createProgram(drawVert, drawFrag);
+    this.screenProgram = this.createProgram(quadVert, screenFrag);
+    this.updateProgram = this.createProgram(quadVert, updateFrag);
 
     this.quadBuffer = this.createBuffer(
-      gl,
       new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1])
     );
     this.framebuffer = gl.createFramebuffer() ?? undefined;
 
     const colorRamp = getColorRamp(defaultRampColors);
     if (colorRamp) {
-      this.colorRampTexture = this.createTexture(
-        gl,
-        gl.LINEAR,
-        colorRamp,
-        16,
-        16
-      );
+      this.colorRampTexture = this.createTexture(gl.LINEAR, colorRamp, 16, 16);
     }
 
     const emptyPixels = new Uint8Array(gl.canvas.width * gl.canvas.height * 4);
     this.backgroundTexture = this.createTexture(
-      gl,
       gl.NEAREST,
       emptyPixels,
       gl.canvas.width,
       gl.canvas.height
     );
     this.screenTexture = this.createTexture(
-      gl,
       gl.NEAREST,
       emptyPixels,
       gl.canvas.width,
@@ -116,38 +95,40 @@ export default class WindLayer extends AbstractGlLayer {
     await windDataPromise;
   }
 
-  prerender(gl: WebGLRenderingContext, matrix: number[]): void {
+  prerender(matrix: number[]): void {
     if (this.windTexture) {
-      this.bindTexture(gl, this.windTexture, 0);
+      this.bindTexture(this.windTexture, 0);
     }
     if (this.particleStateTexture0) {
-      this.bindTexture(gl, this.particleStateTexture0, 1);
+      this.bindTexture(this.particleStateTexture0, 1);
     }
     if (this.framebuffer) {
-      this.bindFramebuffer(gl, this.framebuffer, this.screenTexture);
+      this.bindFramebuffer(this.framebuffer, this.screenTexture);
     }
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
     if (this.backgroundTexture) {
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      this.drawTexture(gl, this.backgroundTexture, this.fadeOpacity);
-      gl.disable(gl.BLEND);
+      this.gl.enable(this.gl.BLEND);
+      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+      this.drawTexture(this.backgroundTexture, this.fadeOpacity);
+      this.gl.disable(this.gl.BLEND);
     }
-    this.drawParticles(gl, matrix);
+    this.drawParticles(matrix);
   }
 
-  doRender(gl: WebGLRenderingContext): void {
+  render(): void {
+    const gl = this.gl;
+
     if (this.windTexture) {
-      this.bindTexture(gl, this.windTexture, 0);
+      this.bindTexture(this.windTexture, 0);
     }
     if (this.particleStateTexture0) {
-      this.bindTexture(gl, this.particleStateTexture0, 1);
+      this.bindTexture(this.particleStateTexture0, 1);
     }
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     if (this.screenTexture) {
-      this.drawTexture(gl, this.screenTexture, 0.8);
+      this.drawTexture(this.screenTexture, 0.8);
     }
     gl.disable(gl.BLEND);
 
@@ -156,11 +137,11 @@ export default class WindLayer extends AbstractGlLayer {
     this.backgroundTexture = this.screenTexture;
     this.screenTexture = temp;
 
-    this.updateParticles(gl);
+    this.updateParticles();
     this.map.resize();
   }
 
-  async loadWindData(gl: WebGLRenderingContext): Promise<void> {
+  async loadWindData(): Promise<void> {
     const windJson = await fetch<string>("/data/wind.json");
     this.windData = JSON.parse(windJson);
 
@@ -169,62 +150,61 @@ export default class WindLayer extends AbstractGlLayer {
 
     return new Promise(resolve => {
       image.onload = (): void => {
-        this.windTexture = this.createTexture(gl, gl.LINEAR, image);
+        this.windTexture = this.createTexture(this.gl.LINEAR, image);
         resolve();
       };
     });
   }
 
-  drawTexture(
-    gl: WebGLRenderingContext,
-    texture: WebGLTexture,
-    opacity: number
-  ): void {
+  drawTexture(texture: WebGLTexture, opacity: number): void {
+    const gl = this.gl;
     if (this.screenProgram) {
-      gl.useProgram(this.screenProgram.program);
-      const uniMap = this.screenProgram.uniformMap;
-      const aPos = this.screenProgram.attributeMap.get("a_pos") ?? -1;
+      const prog = this.screenProgram;
+      gl.useProgram(prog.getProgram());
+      const aPos = prog.getAttribute("a_pos");
 
       if (this.quadBuffer) {
-        this.bindAttribute(gl, this.quadBuffer, aPos, 2);
+        this.bindAttribute(this.quadBuffer, aPos, 2);
       }
-      this.bindTexture(gl, texture, 2);
-      gl.uniform1i(uniMap.get("u_screen") || null, 2);
-      gl.uniform1f(uniMap.get("u_opacity") || null, opacity);
+      this.bindTexture(texture, 2);
+      gl.uniform1i(prog.getUniform("u_screen"), 2);
+      gl.uniform1f(prog.getUniform("u_opacity"), opacity);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
   }
 
-  drawParticles(gl: WebGLRenderingContext, matrix: number[]): void {
+  drawParticles(matrix: number[]): void {
+    const gl = this.gl;
+
     if (this.drawProgram) {
-      gl.useProgram(this.drawProgram.program);
-      const uniMap = this.drawProgram.uniformMap;
-      const aIndex = this.drawProgram.attributeMap.get("a_index") ?? -1;
+      const prog = this.drawProgram;
+      gl.useProgram(prog.getProgram());
+      const aIndex = prog.getAttribute("a_index");
 
       if (this.particleIndexBuffer) {
-        this.bindAttribute(gl, this.particleIndexBuffer, aIndex, 1);
+        this.bindAttribute(this.particleIndexBuffer, aIndex, 1);
       }
       if (this.colorRampTexture) {
-        this.bindTexture(gl, this.colorRampTexture, 2);
+        this.bindTexture(this.colorRampTexture, 2);
       }
 
-      gl.uniform1i(uniMap.get("u_wind") || null, 0);
-      gl.uniform1i(uniMap.get("u_particles") || null, 1);
-      gl.uniform1i(uniMap.get("u_color_ramp") || null, 2);
-      gl.uniformMatrix4fv(uniMap.get("u_matrix") || null, false, matrix);
+      gl.uniform1i(prog.getUniform("u_wind"), 0);
+      gl.uniform1i(prog.getUniform("u_particles"), 1);
+      gl.uniform1i(prog.getUniform("u_color_ramp"), 2);
+      gl.uniformMatrix4fv(prog.getUniform("u_matrix"), false, matrix);
 
       gl.uniform1f(
-        uniMap.get("u_particles_res") || null,
+        prog.getUniform("u_particles_res"),
         this.particleStateResolution
       );
       gl.uniform2f(
-        uniMap.get("u_wind_min") || null,
+        prog.getUniform("u_wind_min"),
         this.windData?.uMin ?? 0,
         this.windData?.vMin ?? 0
       );
       gl.uniform2f(
-        uniMap.get("u_wind_max") || null,
+        prog.getUniform("u_wind_max"),
         this.windData?.uMax ?? 0,
         this.windData?.vMax ?? 0
       );
@@ -233,9 +213,11 @@ export default class WindLayer extends AbstractGlLayer {
     }
   }
 
-  updateParticles(gl: WebGLRenderingContext): void {
+  updateParticles(): void {
+    const gl = this.gl;
+
     if (this.framebuffer && this.particleStateTexture1) {
-      this.bindFramebuffer(gl, this.framebuffer, this.particleStateTexture1);
+      this.bindFramebuffer(this.framebuffer, this.particleStateTexture1);
       gl.viewport(
         0,
         0,
@@ -245,48 +227,47 @@ export default class WindLayer extends AbstractGlLayer {
     }
 
     if (this.updateProgram) {
-      gl.useProgram(this.updateProgram.program);
-      const uniMap = this.updateProgram.uniformMap;
-      const aPos = this.updateProgram.attributeMap.get("a_pos") ?? -1;
+      const prog = this.updateProgram;
+      gl.useProgram(prog.getProgram());
+      const aPos = prog.getAttribute("a_pos");
 
       if (this.quadBuffer) {
-        this.bindAttribute(gl, this.quadBuffer, aPos, 2);
+        this.bindAttribute(this.quadBuffer, aPos, 2);
       }
 
-      gl.uniform1i(uniMap.get("u_wind") ?? null, 0);
-      gl.uniform1i(uniMap.get("u_particles") ?? null, 1);
-      // gl.uniformMatrix4fv(uniMap.get("u_matrix") || null, false, matrix);
+      gl.uniform1i(prog.getUniform("u_wind"), 0);
+      gl.uniform1i(prog.getUniform("u_particles"), 1);
 
-      gl.uniform1f(uniMap.get("u_rand_seed") || null, Math.random());
+      gl.uniform1f(prog.getUniform("u_rand_seed"), Math.random());
       gl.uniform2f(
-        uniMap.get("u_wind_res") || null,
+        prog.getUniform("u_wind_res"),
         this.windData?.width ?? 0,
         this.windData?.height ?? 0
       );
       gl.uniform2f(
-        uniMap.get("u_wind_min") || null,
+        prog.getUniform("u_wind_min"),
         this.windData?.uMin ?? 0,
         this.windData?.vMin ?? 0
       );
       gl.uniform2f(
-        uniMap.get("u_wind_max") || null,
+        prog.getUniform("u_wind_max"),
         this.windData?.uMax ?? 0,
         this.windData?.vMax ?? 0
       );
-      gl.uniform1f(uniMap.get("u_speed_factor") || null, this.speedFactor);
-      gl.uniform1f(uniMap.get("u_drop_rate") || null, this.dropRate);
-      gl.uniform1f(uniMap.get("u_drop_rate_bump") || null, this.dropRateBump);
+      gl.uniform1f(prog.getUniform("u_speed_factor"), this.speedFactor);
+      gl.uniform1f(prog.getUniform("u_drop_rate"), this.dropRate);
+      gl.uniform1f(prog.getUniform("u_drop_rate_bump"), this.dropRateBump);
 
       const bounds = this.map.getBounds();
       const nw = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
       const se = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
       gl.uniform2f(
-        uniMap.get("u_nw") || null,
+        prog.getUniform("u_nw"),
         Math.min(1, Math.max(nw.x, 0)),
         Math.min(1, Math.max(nw.y, 0))
       );
       gl.uniform2f(
-        uniMap.get("u_se") || null,
+        prog.getUniform("u_se"),
         Math.min(1, Math.max(se.x, 0)),
         Math.min(1, Math.max(se.y, 0))
       );
@@ -300,7 +281,8 @@ export default class WindLayer extends AbstractGlLayer {
     }
   }
 
-  setNumParticles(gl: WebGLRenderingContext, numParticles: number): void {
+  setNumParticles(numParticles: number): void {
+    const gl = this.gl;
     // we create a square texture where each pixel will hold a particle position encoded as RGBA
     const particleRes = (this.particleStateResolution = Math.ceil(
       Math.sqrt(numParticles)
@@ -313,14 +295,12 @@ export default class WindLayer extends AbstractGlLayer {
     }
     // textures to hold the particle state for the current and the next frame
     this.particleStateTexture0 = this.createTexture(
-      gl,
       gl.NEAREST,
       particleState,
       particleRes,
       particleRes
     );
     this.particleStateTexture1 = this.createTexture(
-      gl,
       gl.NEAREST,
       particleState,
       particleRes,
@@ -331,7 +311,7 @@ export default class WindLayer extends AbstractGlLayer {
     for (let i = 0; i < this.numParticles; i++) {
       particleIndices[i] = i;
     }
-    this.particleIndexBuffer = this.createBuffer(gl, particleIndices);
+    this.particleIndexBuffer = this.createBuffer(particleIndices);
   }
 
   getNumParticles(): number {
@@ -359,4 +339,24 @@ function getColorRamp(colors: any): Uint8Array | undefined {
   }
 
   return;
+}
+
+export default class TriangleLayer extends AbstractCustomLayer {
+  shaders: Promise<string[]>;
+
+  constructor(map?: mapboxgl.Map) {
+    super("wind", map);
+    this.shaders = Promise.all([
+      this.loadShaderSource(ShaderType.VERTEX, "draw"),
+      this.loadShaderSource(ShaderType.VERTEX, "quad"),
+      this.loadShaderSource(ShaderType.FRAGMENT, "draw"),
+      this.loadShaderSource(ShaderType.FRAGMENT, "screen"),
+      this.loadShaderSource(ShaderType.FRAGMENT, "update")
+    ]);
+  }
+
+  async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
+    const shaders = await this.shaders;
+    this.layer = new GlLayer(shaders, map, gl);
+  }
 }
