@@ -4,6 +4,7 @@
   "description": "Various opengl mapbox weather maps",
   "main": "index.ts",
   "author": "Fabian Brosda",
+  "license" "MIT",
   "scripts": {
     "build": "npm run-script build:server && npm run-script build:client",
     "build:server": "npx tsc -p src/",
