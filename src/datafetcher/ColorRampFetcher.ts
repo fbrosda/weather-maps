@@ -1,7 +1,8 @@
-import DataFetcher from "./DataFetcher";
+import { DataFetcher, ReturnData } from "./DataFetcher";
 import { PNG } from "pngjs";
 
-const defaultRampColors: [number, string][] = [
+type IndexColor = [number, string];
+const defaultRampColors: IndexColor[] = [
   [0.0, "#3288bd"],
   [0.1, "#66c2a5"],
   [0.2, "#abdda4"],
@@ -22,13 +23,11 @@ type RGBA = {
 export default class ColorRampFetcher extends DataFetcher {
   constructor() {
     super();
+
+    this.type2Method.set(".png", this.fetchPng);
   }
 
-  fetchJson(): object {
-    throw new Error("Function not supported");
-  }
-
-  fetchPng(): Buffer {
+  async fetchPng(param: object): Promise<ReturnData> {
     const height = 256;
     const png = new PNG({
       colorType: 2,
@@ -36,7 +35,7 @@ export default class ColorRampFetcher extends DataFetcher {
       width: 1,
       height: height
     });
-    const colors = defaultRampColors.sort((a, b) => a[0] - b[0]);
+    const colors = this.parseQuery(param);
 
     for (let y = 0; y < height; y++) {
       const step = y / height;
@@ -54,13 +53,29 @@ export default class ColorRampFetcher extends DataFetcher {
       png.data[i + 2] = colMin.b + val * (colMax.b - colMin.b);
       png.data[i + 3] = colMin.a + val * (colMax.a - colMin.a);
     }
-    return PNG.sync.write(png, { colorType: 2, filterType: 4 });
+    const data = PNG.sync.write(png, { colorType: 2, filterType: 4 });
+    return { data: data, type: "image/png" };
   }
 
-  private getBracket(
-    array: [number, string][],
-    val: number
-  ): [number, string][] {
+  private parseQuery(param: { colors?: string }): IndexColor[] {
+    if (param.colors) {
+      const colors = param.colors.split(",").map(arg => arg.split(":"));
+      if (colors.length) {
+        const tmp: IndexColor[] = colors.map(arg => [
+          parseFloat(arg[0]) ?? 0,
+          arg[1]
+        ]);
+        return tmp.sort(sortColors);
+      }
+    }
+    return defaultRampColors.sort(sortColors);
+
+    function sortColors(a: IndexColor, b: IndexColor): number {
+      return a[0] - b[0];
+    }
+  }
+
+  private getBracket(array: IndexColor[], val: number): IndexColor[] {
     let i = 0;
     while (array[i++][0] <= val);
 

@@ -1,7 +1,6 @@
-import DataFetcher from "./DataFetcher";
+import { DataFetcher, ReturnData } from "./DataFetcher";
 import { getContent } from "../util.js";
 import { promises as fs } from "fs";
-// import * as asdf from "fs";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { PNG } from "pngjs";
@@ -9,23 +8,28 @@ import { PNG } from "pngjs";
 const GFS_DATE = "20191123";
 
 export default class WindDataFetcher extends DataFetcher {
+  baseurl = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl";
+
   constructor() {
     super();
 
-    this.baseurl = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl";
+    this.type2Method.set(".png", this.fetchPng);
+    this.type2Method.set(".json", this.fetchJson);
   }
 
-  async fetchJson(query: object): Promise<object> {
+  async fetchJson(query: object): Promise<ReturnData> {
     const jsonName = `${GFS_DATE}.json`;
-    return this.fetch(jsonName, query);
+    const data = await this.fetchUpstream(jsonName, query);
+    return { data: data, type: "application/json" };
   }
 
-  async fetchPng(query: object): Promise<Buffer> {
+  async fetchPng(query: object): Promise<ReturnData> {
     const pngName = `${GFS_DATE}.png`;
-    return this.fetch(pngName, query);
+    const data = await this.fetchUpstream(pngName, query);
+    return { data: data, type: "image/png" };
   }
 
-  private async fetch(name: string, query: object): Promise<Buffer> {
+  private async fetchUpstream(name: string, query: object): Promise<Buffer> {
     try {
       await fs.stat(name);
       const file = await fs.readFile(name);

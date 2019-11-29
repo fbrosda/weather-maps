@@ -1,4 +1,4 @@
-import DataFetcher from "./DataFetcher";
+import { DataFetcher } from "./DataFetcher";
 import WindDataFetcher from "./WindDataFetcher";
 import ColorRampFetcher from "./ColorRampFetcher";
 
