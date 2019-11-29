@@ -13,10 +13,19 @@ example from mapbox
  
 ## wind.html
 
-This is heavily based on [webgl-wind](https://github.com/mapbox/webgl-wind). The
-download part is integrated into the server (`WindDataFetcher`) and the actual
-rendering from `src/index.js` is adjusted to work with CustomLayers, which were
-not available, by that time.
+This is heavily based on [webgl-wind](https://github.com/mapbox/webgl-wind).
+
+The download part is integrated into the server (`WindDataFetcher`) and the
+actual rendering from `src/index.js` is adjusted to work with CustomLayers,
+which were not available, by that time.
+
+## Next Steps
+
+- [ ] Adjust wind speed and particle number by zoomlevel
+- [ ] Timestamp selection in the ui
+- [ ] Animate transition between timestamps
+- [ ] Cloud data
+- [ ] Combine cloud and wind data
 
 # Setup
 
