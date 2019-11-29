@@ -17,7 +17,12 @@
     "version": "echo $npm_package_version"
   },
   "dependencies": {
-    "@types/pngjs": "^3.4.0"
+    "@types/pngjs": "^3.4.0",
+    "eccodes-data-bufr": "^0.1.0",
+    "eccodes-data-grib2": "^0.1.0",
+    "eccodes-lib": "^0.1.2",
+    "install": "^0.13.0",
+    "npm": "^6.13.1"
   },
   "devDependencies": {
     "@types/mapbox-gl": "^1.5.2",

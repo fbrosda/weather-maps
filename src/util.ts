@@ -1,5 +1,6 @@
 import * as https from "https";
 import * as http from "http";
+import { promises as fs } from "fs";
 
 export function getContent(url: string): Promise<Buffer> {
   return new Promise(getContentNow);
@@ -22,9 +23,19 @@ export function getContent(url: string): Promise<Buffer> {
         );
       }
 
-      const body: any[] = [];
+      const body: Buffer[] = [];
       response.on("data", chunk => body.push(chunk));
-      response.on("end", () => resolve(Buffer.concat( body )));
+      response.on("end", () => resolve(Buffer.concat(body)));
+    }
+  }
+}
+
+export async function ensureDir(path: string, mask = 0o755): Promise<void> {
+  try {
+    await fs.mkdir(path, mask);
+  } catch (e) {
+    if (e.code !== "EEXIST") {
+      throw e;
     }
   }
 }
