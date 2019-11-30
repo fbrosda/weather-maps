@@ -27,7 +27,7 @@
   "*.json": {
     "type": "config",
     "dispatch": "npx prettier --write %"
-  }
+  },
   "README.md": {
     "type": "config",
     "dispatch": "npx prettier --write %"
