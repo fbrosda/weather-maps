@@ -266,8 +266,10 @@ class GlLayer extends AbstractGlLayer {
     this.particleStateTexture1 = temp;
   }
 
-  async loadWindData(): Promise<void> {
-    const args = "?resolution=high";
+  async loadWindData(date?: Date, resolution = "low"): Promise<void> {
+    const args = `?resolution=${resolution}&dateTime=${
+      date ? date.toISOString() : ""
+    }`;
     const [json, img] = await Promise.all([
       fetch<string>(`/data/wind.json${args}`),
       loadImage(`/data/wind.png${args}`)
@@ -316,6 +318,7 @@ class GlLayer extends AbstractGlLayer {
 
 export default class WindLayer extends AbstractCustomLayer {
   shaders: Promise<string[]>;
+  dateSelect: HTMLSelectElement;
 
   constructor(map?: mapboxgl.Map) {
     super("wind", map);
@@ -326,6 +329,25 @@ export default class WindLayer extends AbstractCustomLayer {
       this.loadShaderSource(ShaderType.FRAGMENT, "screen"),
       this.loadShaderSource(ShaderType.FRAGMENT, "update")
     ]);
+
+    this.dateSelect =
+      (document.getElementById("date") as HTMLSelectElement) ??
+      document.createElement("select");
+    this.createDateSelect();
+  }
+
+  toggle(): void {
+    super.toggle();
+    (this.layer as GlLayer).clear();
+  }
+
+  changeDate(): void {
+    if (this.layer) {
+      const layer = this.layer as GlLayer;
+      const option = this.dateSelect.options[this.dateSelect.selectedIndex];
+      layer.loadWindData(new Date(option.value));
+      layer.clear();
+    }
   }
 
   async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
@@ -333,13 +355,33 @@ export default class WindLayer extends AbstractCustomLayer {
     const layer = new GlLayer(shaders, map, gl);
     this.layer = layer;
 
-    const disableF = (): void => this.toggle();
-    const enableF = (): void => {
-      layer.clear();
-      this.toggle();
-    };
+    this.addListener(map, ["zoomstart", "mousedown"], this.toggle);
+    this.addListener(map, ["zoomend", "mouseup"], this.toggle);
 
-    this.addListener(map, ["zoomstart", "mousedown"], disableF);
-    this.addListener(map, ["zoomend", "mouseup"], enableF);
+    const f = (): void => {
+      this.toggle();
+      setTimeout(this.toggle.bind(this), 200);
+    };
+    document.addEventListener("fullscreenchange", f);
+    this.handler.push(() =>
+      document.removeEventListener("fullscreenchange", f)
+    );
+  }
+
+  private createDateSelect(): void {
+    const now = new Date();
+    now.setMilliseconds(0);
+    now.setSeconds(0);
+    now.setMinutes(0);
+    now.setHours(Math.floor(now.getHours() / 6) * 6);
+    for (let i = 0; i < 40; i++) {
+      const child = document.createElement("option");
+      child.value = now.toISOString();
+      child.innerHTML = now.toLocaleString();
+      this.dateSelect.appendChild(child);
+      now.setHours(now.getHours() - 6);
+    }
+
+    this.dateSelect.addEventListener("change", this.changeDate.bind(this));
   }
 }

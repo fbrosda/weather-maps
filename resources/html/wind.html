@@ -8,14 +8,15 @@
       href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css"
       rel="stylesheet"
     />
+    <link href="/resources/css/tachyons.css" rel="stylesheet" />
     <link href="/resources/css/style.css" rel="stylesheet" />
 
     <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.js"></script>
     <script type="module" src="/resources/js/wind.js"></script>
   </head>
-  <body>
-    <h1>OpenGL Wind</h1>
-    <p>
+  <body class="pa4 w-100 mw9 sans-serif">
+    <h1 class="f1 lh-title">OpenGL Wind</h1>
+    <p class="fl w-80 lh-copy">
       Rendering wind forecasts as particles via open-gl. The code is heavily
       inspired from a
       <a
@@ -24,6 +25,14 @@
       >. The code is adjusted to use the 'CustomLayer'-feature, which didn't
       exist, when the original example was created.
     </p>
-    <div id="map"></div>
+    <div class="w-100 flex cf">
+      <div class="map w-80 br2 br--left" id="map"></div>
+      <div class="w-20 pa3 br2 ba br--right">
+        <div class="pb3">
+          <label class="lh-copy">Select Date:</label>
+          <select id="date" class="w-100"></select>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

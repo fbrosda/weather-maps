@@ -53,11 +53,12 @@ export default abstract class AbstractCustomLayer
     events: string[],
     func: () => void
   ): void {
-    this.handler.concat(
+    const boundFunc = func.bind(this);
+    this.handler = this.handler.concat(
       events.map(event => {
-        map.on(event, func);
+        map.on(event, boundFunc);
         return (): void => {
-          map.off(event, func);
+          map.off(event, boundFunc);
         };
       })
     );

@@ -11,7 +11,7 @@
     "build:server:watch": "npx nodemon --ext 'ts' --watch 'src/**/' --exec 'npm run-script build:server && npm run-script start'",
     "postbuild:server": "cp .accessToken.txt dist/",
     "build:client": "npx tsc -p resources/script/",
-    "postbuild:client": "cp -r resources/{html,css,shader,img} dist/resources/",
+    "postbuild:client": "cp -r resources/{html,css,shader,img} dist/resources/ && cp node_modules/tachyons/css/tachyons.css dist/resources/css/",
     "build:client:watch": "npx tsc -w -p resources/script/",
     "start": "cd ./dist && node src/index.js",
     "clean": "rm -rf dist/",
@@ -23,7 +23,8 @@
     "eccodes-data-grib2": "^0.1.0",
     "eccodes-lib": "^0.1.2",
     "install": "^0.13.0",
-    "npm": "^6.13.1"
+    "npm": "^6.13.1",
+    "tachyons": "^4.11.1"
   },
   "devDependencies": {
     "@types/mapbox-gl": "^1.5.2",
