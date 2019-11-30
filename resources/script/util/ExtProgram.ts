@@ -35,8 +35,8 @@ export default class ExtProgram {
     return this.program;
   }
 
-  getUniform(name: string): WebGLUniformLocation {
-    return this.uniformMap.get(name) ?? -1;
+  getUniform(name: string): WebGLUniformLocation | null {
+    return this.uniformMap.get(name) ?? null;
   }
 
   getAttribute(name: string): GLint {

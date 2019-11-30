@@ -14,9 +14,13 @@
     "dispatch": "npx eslint --format compact --fix %",
     "make": "npm run-script build:client"
   },
-  "resources/*.html": {
+  "resources/[html,css]/*": {
     "type": "html",
     "dispatch": "npx prettier --write %",
+    "make": "npm run-script postbuild:client"
+  },
+  "resources/shader/*": {
+    "type": "css",
     "make": "npm run-script postbuild:client"
   },
   "resources/*.css": {

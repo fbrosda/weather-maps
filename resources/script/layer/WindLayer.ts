@@ -6,8 +6,8 @@ import ExtProgram from "../util/ExtProgram.js";
 import { loadImage, fetch, ShaderType } from "../util/util.js";
 
 class GlLayer extends AbstractGlLayer {
-  fadeOpacity = 0.9; // how fast the particle trails fade on each frame
-  speedFactor = 0.5; // how fast the particles move
+  fadeOpacity = 0.95; // how fast the particle trails fade on each frame
+  speedFactor = 0.4; // how fast the particles move
   dropRate = 0.003; // how often the particles move to a random place
   dropRateBump = 0.01; // drop rate increase relative to individual particle speed
   numParticles = 0;
@@ -237,7 +237,10 @@ class GlLayer extends AbstractGlLayer {
       this.windData.uMax,
       this.windData.vMax
     );
-    gl.uniform1f(prog.getUniform("u_speed_factor"), this.speedFactor);
+    gl.uniform1f(
+      prog.getUniform("u_speed_factor"),
+      this.speedFactor / (2 * this.map.getZoom() + 5)
+    );
     gl.uniform1f(prog.getUniform("u_drop_rate"), this.dropRate);
     gl.uniform1f(prog.getUniform("u_drop_rate_bump"), this.dropRateBump);
 
@@ -264,9 +267,10 @@ class GlLayer extends AbstractGlLayer {
   }
 
   async loadWindData(): Promise<void> {
+    const args = "?resolution=high";
     const [json, img] = await Promise.all([
-      fetch<string>("/data/wind.json"),
-      loadImage("/data/wind.png")
+      fetch<string>(`/data/wind.json${args}`),
+      loadImage(`/data/wind.png${args}`)
     ]);
     this.windData = JSON.parse(json);
     this.windTexture = this.createTexture(this.gl.LINEAR, img);

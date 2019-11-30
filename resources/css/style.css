@@ -2,3 +2,7 @@
   width: 90vw;
   height: 80vh;
 }
+
+canvas {
+  background: #000; /*avoid white shadows*/
+}
