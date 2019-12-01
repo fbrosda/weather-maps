@@ -9,7 +9,7 @@ export default class GlLayer extends AbstractGlLayer {
   speedFactor = 0.4; // how fast the particles move
   dropRate = 0.003; // how often the particles move to a random place
   dropRateBump = 0.01; // drop rate increase relative to individual particle speed
-  numParticles = 0;
+  numParticles = 2 ** 14;
   particleStateResolution = 0;
 
   isZoom = false;
@@ -67,7 +67,7 @@ export default class GlLayer extends AbstractGlLayer {
   }
 
   clear(): void {
-    this.setNumParticles(2 ** 14);
+    this.setNumParticles(this.numParticles);
     const width = this.gl.canvas.width;
     const height = this.gl.canvas.height;
     const emptyPixels = new Uint8Array(width * height * 4);
@@ -136,7 +136,7 @@ export default class GlLayer extends AbstractGlLayer {
     }
   }
 
-  drawTexture(texture: WebGLTexture, opacity: number): void {
+  private drawTexture(texture: WebGLTexture, opacity: number): void {
     const gl = this.gl;
     if (this.screenProgram) {
       const prog = this.screenProgram;
@@ -154,7 +154,7 @@ export default class GlLayer extends AbstractGlLayer {
     }
   }
 
-  drawParticles(matrix: number[]): void {
+  private drawParticles(matrix: number[]): void {
     const gl = this.gl;
 
     if (this.drawProgram && this.windData) {
@@ -193,7 +193,7 @@ export default class GlLayer extends AbstractGlLayer {
     }
   }
 
-  updateParticles(): void {
+  private updateParticles(): void {
     if (!this.updateProgram || !this.windData) {
       return;
     }
@@ -308,10 +308,6 @@ export default class GlLayer extends AbstractGlLayer {
       particleIndices[i] = i;
     }
     this.particleIndexBuffer = this.createBuffer(particleIndices);
-  }
-
-  getNumParticles(): number {
-    return this.numParticles;
   }
 }
 

@@ -22,25 +22,6 @@ export default class WindLayer extends AbstractCustomLayer {
     this.createDateSelect();
   }
 
-  toggle(): void {
-    super.toggle();
-    if( this.layer ) {
-      const layer = (this.layer as WindGlLayer);
-      layer.clear();
-      layer.map.triggerRepaint();
-    }
-  }
-
-  async changeDate(): Promise<void> {
-    if (this.layer) {
-      const layer = this.layer as WindGlLayer;
-      const option = this.dateSelect.options[this.dateSelect.selectedIndex];
-      this.toggle();
-      await layer.loadWindData(new Date(option.value));
-      this.toggle();
-    }
-  }
-
   async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
     const shaders = await this.shaders;
     const layer = new WindGlLayer(shaders, map, gl);
@@ -57,6 +38,25 @@ export default class WindLayer extends AbstractCustomLayer {
     this.handler.push(() =>
       document.removeEventListener("fullscreenchange", f)
     );
+  }
+
+  toggle(): void {
+    super.toggle();
+    if( this.layer ) {
+      const layer = (this.layer as WindGlLayer);
+      layer.clear();
+      layer.map.triggerRepaint();
+    }
+  }
+
+  private async changeDate(): Promise<void> {
+    if (this.layer) {
+      const layer = this.layer as WindGlLayer;
+      const option = this.dateSelect.options[this.dateSelect.selectedIndex];
+      this.toggle();
+      await layer.loadWindData(new Date(option.value));
+      this.toggle();
+    }
   }
 
   private createDateSelect(): void {
