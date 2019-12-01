@@ -125,7 +125,7 @@ class GlLayer extends AbstractGlLayer {
     this.backgroundTexture = this.screenTexture;
     this.screenTexture = temp;
 
-    this.map.resize();
+    this.map.triggerRepaint();
   }
 
   private bindTextures(): void {
@@ -338,15 +338,20 @@ export default class WindLayer extends AbstractCustomLayer {
 
   toggle(): void {
     super.toggle();
-    (this.layer as GlLayer).clear();
+    if( this.layer ) {
+      const layer = (this.layer as GlLayer);
+      layer.clear();
+      layer.map.triggerRepaint();
+    }
   }
 
-  changeDate(): void {
+  async changeDate(): Promise<void> {
     if (this.layer) {
       const layer = this.layer as GlLayer;
       const option = this.dateSelect.options[this.dateSelect.selectedIndex];
-      layer.loadWindData(new Date(option.value));
-      layer.clear();
+      this.toggle();
+      await layer.loadWindData(new Date(option.value));
+      this.toggle();
     }
   }
 
