@@ -370,16 +370,14 @@ export default class WindLayer extends AbstractCustomLayer {
 
   private createDateSelect(): void {
     const now = new Date();
-    now.setMilliseconds(0);
-    now.setSeconds(0);
-    now.setMinutes(0);
-    now.setHours(Math.floor(now.getHours() / 6) * 6);
-    for (let i = 0; i < 40; i++) {
+    now.setUTCHours(Math.floor(now.getHours() / 6) * 6, 0, 0, 0);
+    for (let i = 0; i < 38; i++) {
+      now.setHours(now.getHours() - 6);
+
       const child = document.createElement("option");
       child.value = now.toISOString();
       child.innerHTML = now.toLocaleString();
       this.dateSelect.appendChild(child);
-      now.setHours(now.getHours() - 6);
     }
 
     this.dateSelect.addEventListener("change", this.changeDate.bind(this));

@@ -93,7 +93,7 @@ export default class WindDataFetcher extends DataFetcher {
 
     function formatDate(date?: Date): string {
       const d = date ?? new Date();
-      return `${d.getFullYear()}${d.getMonth() + 1}${d.getDate()}`;
+      return `${d.getFullYear()}${d.getMonth() + 1}${d.getDate().toString().padStart(2, '0')}`;
     }
   }
 
