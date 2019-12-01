@@ -5,6 +5,7 @@ import { ShaderType } from "../util/util.js";
 export default class WindLayer extends AbstractCustomLayer {
   shaders: Promise<string[]>;
   dateSelect: HTMLSelectElement;
+  numParticlesInput: HTMLInputElement;
 
   constructor(map?: mapboxgl.Map) {
     super("wind", map);
@@ -16,10 +17,13 @@ export default class WindLayer extends AbstractCustomLayer {
       this.loadShaderSource(ShaderType.FRAGMENT, "update")
     ]);
 
-    this.dateSelect =
-      (document.getElementById("date") as HTMLSelectElement) ??
-      document.createElement("select");
+    this.dateSelect = document.getElementById("date") as HTMLSelectElement;
     this.createDateSelect();
+
+    this.numParticlesInput = document.getElementById(
+      "numParticles"
+    ) as HTMLInputElement;
+    this.createNumParticlesInput();
   }
 
   async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
@@ -27,6 +31,7 @@ export default class WindLayer extends AbstractCustomLayer {
     const layer = new WindGlLayer(shaders, map, gl);
     this.layer = layer;
 
+    this.setNumParticles();
     this.addListener(map, ["zoomstart", "mousedown"], this.toggle);
     this.addListener(map, ["zoomend", "mouseup"], this.toggle);
 
@@ -42,8 +47,8 @@ export default class WindLayer extends AbstractCustomLayer {
 
   toggle(): void {
     super.toggle();
-    if( this.layer ) {
-      const layer = (this.layer as WindGlLayer);
+    if (this.layer) {
+      const layer = this.layer as WindGlLayer;
       layer.clear();
       layer.map.triggerRepaint();
     }
@@ -59,6 +64,13 @@ export default class WindLayer extends AbstractCustomLayer {
     }
   }
 
+  private setNumParticles(): void {
+    if (this.layer) {
+      const layer = this.layer as WindGlLayer;
+      layer.setNumParticles(2 ** parseInt(this.numParticlesInput.value, 10));
+    }
+  }
+
   private createDateSelect(): void {
     const now = new Date();
     now.setUTCHours(Math.floor(now.getHours() / 6) * 6, 0, 0, 0);
@@ -71,6 +83,14 @@ export default class WindLayer extends AbstractCustomLayer {
       this.dateSelect.appendChild(child);
     }
 
-    this.dateSelect.addEventListener("change", this.changeDate.bind(this));
+    const f = this.changeDate.bind(this);
+    this.dateSelect.addEventListener("change", f);
+    this.handler.push(() => this.dateSelect.removeEventListener("change", f));
+  }
+
+  private createNumParticlesInput(): void {
+    const f = this.setNumParticles.bind(this);
+    this.numParticlesInput.addEventListener("change", f);
+    this.handler.push(() => this.numParticlesInput.removeEventListener("change", f));
   }
 }
