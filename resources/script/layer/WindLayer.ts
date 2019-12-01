@@ -4,6 +4,7 @@ import { ShaderType } from "../util/util.js";
 
 export default class WindLayer extends AbstractCustomLayer {
   shaders: Promise<string[]>;
+  visibleCheckbox: HTMLInputElement;
   dateSelect: HTMLSelectElement;
   numParticlesInput: HTMLInputElement;
 
@@ -16,6 +17,11 @@ export default class WindLayer extends AbstractCustomLayer {
       this.loadShaderSource(ShaderType.FRAGMENT, "screen"),
       this.loadShaderSource(ShaderType.FRAGMENT, "update")
     ]);
+
+    this.visibleCheckbox = document.getElementById(
+      "visible"
+    ) as HTMLInputElement;
+    this.createVisibleCheckbox();
 
     this.dateSelect = document.getElementById("date") as HTMLSelectElement;
     this.createDateSelect();
@@ -32,12 +38,18 @@ export default class WindLayer extends AbstractCustomLayer {
     this.layer = layer;
 
     this.setNumParticles();
-    this.addListener(map, ["zoomstart", "mousedown"], this.toggle);
-    this.addListener(map, ["zoomend", "mouseup"], this.toggle);
+    this.addListener(map, ["zoomstart", "mousedown"], () => {
+      if (this.visibleCheckbox.checked) this.toggle();
+    });
+    this.addListener(map, ["zoomend", "mouseup"], () => {
+      if (this.visibleCheckbox.checked) this.toggle();
+    });
 
     const f = (): void => {
-      this.toggle();
-      setTimeout(this.toggle.bind(this), 200);
+      if (this.visibleCheckbox.checked) {
+        this.toggle();
+        setTimeout(this.toggle.bind(this), 200);
+      }
     };
     document.addEventListener("fullscreenchange", f);
     this.handler.push(() =>
@@ -91,6 +103,18 @@ export default class WindLayer extends AbstractCustomLayer {
   private createNumParticlesInput(): void {
     const f = this.setNumParticles.bind(this);
     this.numParticlesInput.addEventListener("change", f);
-    this.handler.push(() => this.numParticlesInput.removeEventListener("change", f));
+    this.handler.push(() =>
+      this.numParticlesInput.removeEventListener("change", f)
+    );
+  }
+
+  private createVisibleCheckbox(): void {
+    this.visible = this.visibleCheckbox.checked;
+
+    const f = this.toggle.bind(this);
+    this.visibleCheckbox.addEventListener("change", f);
+    this.handler.push(() =>
+      this.visibleCheckbox.removeEventListener("change", f)
+    );
   }
 }
