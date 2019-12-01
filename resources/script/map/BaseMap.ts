@@ -5,7 +5,10 @@ export default class BaseMap extends mapboxgl.Map {
     super({
       container: id,
       style: "mapbox://styles/mapbox/dark-v10",
-      // zoomControl: true
+      center: [10, 47],
+      minZoom: 1,
+      maxZoom: 10,
+      zoom: 2,
     });
 
     this.addControl(new mapboxgl.FullscreenControl())
