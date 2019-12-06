@@ -58,6 +58,7 @@ export default class WindDataFetcher extends DataFetcher {
   private async load(name: string, param: WindParam): Promise<Buffer> {
     const path = this.getPath(name);
     try {
+      console.log(path);
       await fs.stat(path);
       const file = await fs.readFile(path);
       return file;
@@ -76,6 +77,13 @@ export default class WindDataFetcher extends DataFetcher {
       resolution: Resolution.LOW
     };
     if (query.dateTime) {
+      if (query.dateTime === "red" || query.dateTime === "green") {
+        return {
+          date: query.dateTime,
+          time: Time.t0,
+          resolution: Resolution.LOW
+        };
+      }
       const date = new Date(query.dateTime);
       if (date && !isNaN(date.getDate())) {
         ret.date = formatDate(date);
@@ -93,7 +101,10 @@ export default class WindDataFetcher extends DataFetcher {
 
     function formatDate(date?: Date): string {
       const d = date ?? new Date();
-      return `${d.getFullYear()}${d.getMonth() + 1}${d.getDate().toString().padStart(2, '0')}`;
+      return `${d.getFullYear()}${d.getMonth() + 1}${d
+        .getDate()
+        .toString()
+        .padStart(2, "0")}`;
     }
   }
 

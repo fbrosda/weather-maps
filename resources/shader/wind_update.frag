@@ -1,10 +1,19 @@
 precision highp float;
 
 uniform sampler2D u_particles;
+
 uniform sampler2D u_wind;
 uniform vec2 u_wind_res;
 uniform vec2 u_wind_min;
 uniform vec2 u_wind_max;
+
+uniform sampler2D u_previous;
+uniform vec2 u_previous_res;
+uniform vec2 u_previous_min;
+uniform vec2 u_previous_max;
+
+uniform float u_velocity;
+
 uniform vec2 u_nw;
 uniform vec2 u_se;
 uniform float u_rand_seed;
@@ -22,15 +31,15 @@ float rand(const vec2 co) {
 }
 
 // wind speed lookup; use manual bilinear filtering based on 4 adjacent pixels for smooth interpolation
-vec2 lookup_wind(const vec2 uv) {
-    // return texture2D(u_wind, uv).rg; // lower-res hardware filtering
-    vec2 px = 1.0 / u_wind_res;
-    vec2 vc = (floor(uv * u_wind_res)) * px;
-    vec2 f = fract(uv * u_wind_res);
-    vec2 tl = texture2D(u_wind, vc).rg;
-    vec2 tr = texture2D(u_wind, vc + vec2(px.x, 0)).rg;
-    vec2 bl = texture2D(u_wind, vc + vec2(0, px.y)).rg;
-    vec2 br = texture2D(u_wind, vc + px).rg;
+vec2 lookup_wind(const sampler2D u_texture, const vec2 res, const vec2 uv) {
+    // return texture2D(u_texture, uv).rg; // lower-res hardware filtering
+    vec2 px = 1.0 / res;
+    vec2 vc = (floor(uv * res)) * px;
+    vec2 f = fract(uv * res);
+    vec2 tl = texture2D(u_texture, vc).rg;
+    vec2 tr = texture2D(u_texture, vc + vec2(px.x, 0)).rg;
+    vec2 bl = texture2D(u_texture, vc + vec2(0, px.y)).rg;
+    vec2 br = texture2D(u_texture, vc + px).rg;
     return mix(mix(tl, tr, f.x), mix(bl, br, f.x), f.y);
 }
 
@@ -40,8 +49,14 @@ void main() {
         color.r / 255.0 + color.b,
         color.g / 255.0 + color.a); // decode particle position from pixel RGBA
 
-    vec2 velocity = mix(u_wind_min, u_wind_max, lookup_wind(pos));
+    vec2 velocity = mix(u_wind_min, u_wind_max, lookup_wind(u_wind, u_wind_res, pos));
     float speed_t = length(velocity) / length(u_wind_max);
+
+    vec2 velocity_prev = mix(u_previous_min, u_previous_max, lookup_wind(u_previous, u_previous_res, pos));
+    float speed_t_prev = length(velocity_prev) / length(u_previous_max);
+
+    velocity = mix(velocity, velocity_prev, u_velocity);
+    speed_t = mix(speed_t, speed_t_prev, u_velocity);
 
     // take EPSG:4236 distortion into account for calculating where the particle moved
     float distortion = cos(radians(pos.y * 180.0 - 90.0));

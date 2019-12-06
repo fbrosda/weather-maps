@@ -3,6 +3,13 @@ precision mediump float;
 uniform sampler2D u_wind;
 uniform vec2 u_wind_min;
 uniform vec2 u_wind_max;
+
+uniform sampler2D u_previous;
+uniform vec2 u_previous_min;
+uniform vec2 u_previous_max;
+
+uniform float u_velocity;
+
 uniform sampler2D u_color_ramp;
 
 varying vec2 v_particle_pos;
@@ -10,6 +17,11 @@ varying vec2 v_particle_pos;
 void main() {
     vec2 velocity = mix(u_wind_min, u_wind_max, texture2D(u_wind, v_particle_pos).rg);
     float speed_t = length(velocity) / length(u_wind_max);
+
+    vec2 velocity_prev = mix(u_previous_min, u_previous_max, texture2D(u_previous, v_particle_pos).rg);
+    float speed_t_prev = length(velocity_prev) / length(u_previous_max);
+
+    speed_t = mix(speed_t, speed_t_prev, u_velocity);
 
     // color ramp is encoded in a 16x16 texture
     vec2 ramp_pos = vec2(

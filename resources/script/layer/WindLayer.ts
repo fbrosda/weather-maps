@@ -55,6 +55,8 @@ export default class WindLayer extends AbstractCustomLayer {
     this.handler.push(() =>
       document.removeEventListener("fullscreenchange", f)
     );
+
+    this.changeDate();
   }
 
   toggle(): void {
@@ -70,9 +72,9 @@ export default class WindLayer extends AbstractCustomLayer {
     if (this.layer) {
       const layer = this.layer as WindGlLayer;
       const option = this.dateSelect.options[this.dateSelect.selectedIndex];
-      this.toggle();
-      await layer.loadWindData(new Date(option.value));
-      this.toggle();
+      // this.toggle();
+      await layer.loadWindData(option.value);
+      // this.toggle();
     }
   }
 

@@ -4,6 +4,15 @@ import AbstractGlLayer from "./AbstractGlLayer.js";
 import ExtProgram from "../util/ExtProgram.js";
 import { loadImage, fetch } from "../util/util.js";
 
+type WindInfo = {
+  width: number;
+  height: number;
+  uMin: number;
+  uMax: number;
+  vMin: number;
+  vMax: number;
+};
+
 export default class GlLayer extends AbstractGlLayer {
   fadeOpacity = 0.95; // how fast the particle trails fade on each frame
   speedFactor = 0.4; // how fast the particles move
@@ -29,15 +38,9 @@ export default class GlLayer extends AbstractGlLayer {
 
   particleIndexBuffer?: WebGLBuffer;
 
-  windData?: {
-    width: number;
-    height: number;
-    uMin: number;
-    uMax: number;
-    vMin: number;
-    vMax: number;
-  };
-  windTexture?: WebGLTexture;
+  windData: WindInfo[] = [];
+  windTexture: WebGLTexture[] = [];
+  windMix = 0;
 
   constructor(shaders: string[], map: mapboxgl.Map, gl: WebGLRenderingContext) {
     super(shaders, map, gl);
@@ -47,8 +50,6 @@ export default class GlLayer extends AbstractGlLayer {
   async init(): Promise<void> {
     const gl = this.gl;
     const [drawVert, quadVert, drawFrag, screenFrag, updateFrag] = this.shaders;
-
-    this.loadWindData();
 
     this.drawProgram = this.createProgram(drawVert, drawFrag);
     this.screenProgram = this.createProgram(quadVert, screenFrag);
@@ -86,7 +87,7 @@ export default class GlLayer extends AbstractGlLayer {
   }
 
   prerender(matrix: number[]): void {
-    if (!this.windData || this.isZoom) {
+    if (!this.windData.length || this.isZoom) {
       return;
     }
     this.bindTextures();
@@ -106,7 +107,7 @@ export default class GlLayer extends AbstractGlLayer {
   }
 
   render(): void {
-    if (!this.windData || this.isZoom) {
+    if (!this.windData.length || this.isZoom) {
       return;
     }
     const gl = this.gl;
@@ -128,8 +129,13 @@ export default class GlLayer extends AbstractGlLayer {
   }
 
   private bindTextures(): void {
-    if (this.windTexture) {
-      this.bindTexture(this.windTexture, 0);
+    // current wind texture
+    if (this.windTexture[0]) {
+      this.bindTexture(this.windTexture[0], 0);
+    }
+    // previous wind texture for blending
+    if (this.windTexture[1]) {
+      this.bindTexture(this.windTexture[1], 3);
     }
     if (this.particleStateTexture0) {
       this.bindTexture(this.particleStateTexture0, 1);
@@ -157,7 +163,7 @@ export default class GlLayer extends AbstractGlLayer {
   private drawParticles(matrix: number[]): void {
     const gl = this.gl;
 
-    if (this.drawProgram && this.windData) {
+    if (this.drawProgram && this.windData.length) {
       const prog = this.drawProgram;
       gl.useProgram(prog.getProgram());
       const aIndex = prog.getAttribute("a_index");
@@ -170,31 +176,45 @@ export default class GlLayer extends AbstractGlLayer {
       }
 
       gl.uniform1i(prog.getUniform("u_wind"), 0);
+      gl.uniform1i(prog.getUniform("u_previous"), 3);
       gl.uniform1i(prog.getUniform("u_particles"), 1);
       gl.uniform1i(prog.getUniform("u_color_ramp"), 2);
       gl.uniformMatrix4fv(prog.getUniform("u_matrix"), false, matrix);
 
+      gl.uniform1f(prog.getUniform("u_velocity"), this.windMix);
       gl.uniform1f(
         prog.getUniform("u_particles_res"),
         this.particleStateResolution
       );
       gl.uniform2f(
         prog.getUniform("u_wind_min"),
-        this.windData.uMin,
-        this.windData.vMin
+        this.windData[0].uMin,
+        this.windData[0].vMin
       );
       gl.uniform2f(
         prog.getUniform("u_wind_max"),
-        this.windData.uMax,
-        this.windData.vMax
+        this.windData[0].uMax,
+        this.windData[0].vMax
       );
+      if (this.windData[1]) {
+        gl.uniform2f(
+          prog.getUniform("u_previous_min"),
+          this.windData[1].uMin,
+          this.windData[1].vMin
+        );
+        gl.uniform2f(
+          prog.getUniform("u_previous_max"),
+          this.windData[1].uMax,
+          this.windData[1].vMax
+        );
+      }
 
       gl.drawArrays(gl.POINTS, 0, this.numParticles);
     }
   }
 
   private updateParticles(): void {
-    if (!this.updateProgram || !this.windData) {
+    if (!this.updateProgram || !this.windData.length) {
       return;
     }
     const gl = this.gl;
@@ -217,25 +237,46 @@ export default class GlLayer extends AbstractGlLayer {
       this.bindAttribute(this.quadBuffer, aPos, 2);
     }
 
+    // Textures
     gl.uniform1i(prog.getUniform("u_wind"), 0);
     gl.uniform1i(prog.getUniform("u_particles"), 1);
+    gl.uniform1i(prog.getUniform("u_previous"), 3);
 
+    gl.uniform1f(prog.getUniform("u_velocity"), this.windMix);
+    this.windMix = Math.max(0, this.windMix - 0.01);
     gl.uniform1f(prog.getUniform("u_rand_seed"), Math.random());
     gl.uniform2f(
       prog.getUniform("u_wind_res"),
-      this.windData.width,
-      this.windData.height
+      this.windData[0].width,
+      this.windData[0].height
     );
     gl.uniform2f(
       prog.getUniform("u_wind_min"),
-      this.windData.uMin,
-      this.windData.vMin
+      this.windData[0].uMin,
+      this.windData[0].vMin
     );
     gl.uniform2f(
       prog.getUniform("u_wind_max"),
-      this.windData.uMax,
-      this.windData.vMax
+      this.windData[0].uMax,
+      this.windData[0].vMax
     );
+    if (this.windData[1]) {
+      gl.uniform2f(
+        prog.getUniform("u_previous_res"),
+        this.windData[1].width,
+        this.windData[1].height
+      );
+      gl.uniform2f(
+        prog.getUniform("u_previous_min"),
+        this.windData[1].uMin,
+        this.windData[1].vMin
+      );
+      gl.uniform2f(
+        prog.getUniform("u_previous_max"),
+        this.windData[1].uMax,
+        this.windData[1].vMax
+      );
+    }
     gl.uniform1f(
       prog.getUniform("u_speed_factor"),
       this.speedFactor / (2 * this.map.getZoom() + 5)
@@ -265,16 +306,27 @@ export default class GlLayer extends AbstractGlLayer {
     this.particleStateTexture1 = temp;
   }
 
-  async loadWindData(date?: Date, resolution = "low"): Promise<void> {
-    const args = `?resolution=${resolution}&dateTime=${
-      date ? date.toISOString() : ""
-    }`;
+  async loadWindData(date?: string, resolution = "low"): Promise<void> {
+    const args = `?resolution=${resolution}&dateTime=${date ? date : ""}`;
     const [json, img] = await Promise.all([
       fetch<string>(`/data/wind.json${args}`),
       loadImage(`/data/wind.png${args}`)
     ]);
-    this.windData = JSON.parse(json);
-    this.windTexture = this.createTexture(this.gl.LINEAR, img);
+    this.windData = rotate(this.windData, JSON.parse(json));
+    this.windTexture = rotate(
+      this.windTexture,
+      this.createTexture(this.gl.LINEAR, img)
+    );
+    this.windMix = 1;
+
+    function rotate<T>(arr: T[], data: T): T[] {
+      if (!arr.length) {
+        return [data, data];
+      } else {
+        arr.unshift(data);
+        return arr.slice(0, 2);
+      }
+    }
   }
 
   setNumParticles(numParticles: number): void {
@@ -310,5 +362,3 @@ export default class GlLayer extends AbstractGlLayer {
     this.particleIndexBuffer = this.createBuffer(particleIndices);
   }
 }
-
-
