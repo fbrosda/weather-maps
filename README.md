@@ -21,9 +21,9 @@ which were not available, by that time.
 
 ## Next Steps
 
-- [ ] Adjust wind speed and particle number by zoomlevel
-- [ ] Timestamp selection in the ui
-- [ ] Animate transition between timestamps
+- [x] Adjust wind speed and particle number by zoomlevel
+- [x] Timestamp selection in the ui
+- [x] Animate transition between timestamps
 - [ ] Cloud data
 - [ ] Combine cloud and wind data
 
