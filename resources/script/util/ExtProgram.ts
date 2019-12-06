@@ -1,13 +1,10 @@
 export default class ExtProgram {
   private program: WebGLProgram;
-  private attributeMap: Map<string, GLint>;
-  private uniformMap: Map<string, WebGLUniformLocation>;
+  private attributeMap: Map<string, GLint> = new Map();
+  private uniformMap: Map<string, WebGLUniformLocation> = new Map();
 
   constructor(gl: WebGLRenderingContext, program: WebGLProgram) {
     this.program = program;
-
-    this.attributeMap = new Map();
-    this.uniformMap = new Map();
 
     const numAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
     for (let i = 0; i < numAttributes; i++) {

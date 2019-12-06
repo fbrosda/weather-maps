@@ -5,6 +5,7 @@ import { ShaderType } from "../util/util.js";
 export default class WindLayer extends AbstractCustomLayer {
   shaders: Promise<string[]>;
   visibleCheckbox: HTMLInputElement;
+  resolutionSelect: HTMLSelectElement;
   dateSelect: HTMLSelectElement;
   numParticlesInput: HTMLInputElement;
 
@@ -22,6 +23,9 @@ export default class WindLayer extends AbstractCustomLayer {
       "visible"
     ) as HTMLInputElement;
     this.createVisibleCheckbox();
+
+    this.resolutionSelect = document.getElementById("resolution") as HTMLSelectElement;
+    this.createResolutionSelect();
 
     this.dateSelect = document.getElementById("date") as HTMLSelectElement;
     this.createDateSelect();
@@ -56,7 +60,7 @@ export default class WindLayer extends AbstractCustomLayer {
       document.removeEventListener("fullscreenchange", f)
     );
 
-    this.changeDate();
+    this.changeDateAndResolution();
   }
 
   toggle(): void {
@@ -68,12 +72,13 @@ export default class WindLayer extends AbstractCustomLayer {
     }
   }
 
-  private async changeDate(): Promise<void> {
+  private async changeDateAndResolution(): Promise<void> {
     if (this.layer) {
       const layer = this.layer as WindGlLayer;
-      const option = this.dateSelect.options[this.dateSelect.selectedIndex];
+      const date = this.dateSelect.options[this.dateSelect.selectedIndex];
+      const resolution = this.resolutionSelect.options[this.resolutionSelect.selectedIndex];
       // this.toggle();
-      await layer.loadWindData(option.value);
+      await layer.loadWindData(date.value, resolution.value);
       // this.toggle();
     }
   }
@@ -83,6 +88,12 @@ export default class WindLayer extends AbstractCustomLayer {
       const layer = this.layer as WindGlLayer;
       layer.setNumParticles(2 ** parseInt(this.numParticlesInput.value, 10));
     }
+  }
+
+  private createResolutionSelect(): void {
+    const f = this.changeDateAndResolution.bind(this);
+    this.resolutionSelect.addEventListener("change", f);
+    this.handler.push(() => this.resolutionSelect.removeEventListener("change", f));
   }
 
   private createDateSelect(): void {
@@ -97,7 +108,7 @@ export default class WindLayer extends AbstractCustomLayer {
       this.dateSelect.appendChild(child);
     }
 
-    const f = this.changeDate.bind(this);
+    const f = this.changeDateAndResolution.bind(this);
     this.dateSelect.addEventListener("change", f);
     this.handler.push(() => this.dateSelect.removeEventListener("change", f));
   }
