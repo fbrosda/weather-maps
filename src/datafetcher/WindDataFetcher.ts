@@ -58,7 +58,6 @@ export default class WindDataFetcher extends DataFetcher {
   private async load(name: string, param: WindParam): Promise<Buffer> {
     const path = this.getPath(name);
     try {
-      console.log(path);
       await fs.stat(path);
       const file = await fs.readFile(path);
       return file;

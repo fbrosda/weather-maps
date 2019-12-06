@@ -23,21 +23,21 @@
     "eccodes-data-grib2": "^0.1.0",
     "eccodes-lib": "^0.1.2",
     "install": "^0.13.0",
-    "npm": "^6.13.1",
+    "npm": "^6.13.2",
     "tachyons": "^4.11.1"
   },
   "devDependencies": {
-    "@types/mapbox-gl": "^1.5.2",
+    "@types/mapbox-gl": "^1.6.0",
     "@types/node": "^12.12.14",
-    "@typescript-eslint/eslint-plugin": "^2.9.0",
-    "@typescript-eslint/parser": "^2.9.0",
-    "eslint": "^6.7.1",
+    "@typescript-eslint/eslint-plugin": "^2.10.0",
+    "@typescript-eslint/parser": "^2.10.0",
+    "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.7.0",
     "eslint-plugin-prettier": "^3.1.1",
     "nodemon": "^2.0.1",
     "pngjs": "^3.4.0",
     "prettier": "^1.19.1",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
