@@ -243,7 +243,7 @@ export default class GlLayer extends AbstractGlLayer {
     gl.uniform1i(prog.getUniform("u_previous"), 3);
 
     gl.uniform1f(prog.getUniform("u_velocity"), this.windMix);
-    this.windMix = Math.max(0, this.windMix - 0.01);
+    this.windMix = Math.max(0, this.windMix - 0.015);
     gl.uniform1f(prog.getUniform("u_rand_seed"), Math.random());
     gl.uniform2f(
       prog.getUniform("u_wind_res"),

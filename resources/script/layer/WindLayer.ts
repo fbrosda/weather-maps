@@ -105,7 +105,7 @@ export default class WindLayer extends AbstractCustomLayer {
 
     if (doPlay) {
       this.playButton.innerHTML = "Stop";
-      this.playInterval = setTimeout(func, 4000);
+      this.playInterval = setTimeout(func, 800);
     } else {
       this.playButton.innerHTML = "Play";
       clearInterval(this.playInterval);
