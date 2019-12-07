@@ -2,9 +2,7 @@ import { DataFetcher, ReturnData } from "./DataFetcher";
 import { getContent, ensureDir } from "../util.js";
 import { promises as fs } from "fs";
 import { exec } from "child_process";
-import { promisify } from "util";
 import { PNG } from "pngjs";
-import { tmpdir } from "os";
 import { join } from "path";
 
 enum Time {
@@ -35,6 +33,7 @@ type Grib2Json = {
 export default class WindDataFetcher extends DataFetcher {
   baseurl = `https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_`;
   basePath = `${process.env.PWD ?? ".."}/data`;
+  param2file: Map<WindParam, Promise<Buffer>> = new Map();
 
   constructor() {
     super();
@@ -56,6 +55,20 @@ export default class WindDataFetcher extends DataFetcher {
   }
 
   private async load(name: string, param: WindParam): Promise<Buffer> {
+    // Make sure, that multiple requests for the same request don't spawn
+    // multiple upstream requests.
+    if (this.param2file.has(param)) {
+      await this.param2file.get(param);
+    }
+    const promise = this.readFile(name, param);
+    this.param2file.set(param, promise);
+
+    const file = await promise;
+    this.param2file.delete(param);
+    return file;
+  }
+
+  private async readFile(name: string, param: WindParam): Promise<Buffer> {
     const path = this.getPath(name);
     try {
       await fs.stat(path);
@@ -138,17 +151,8 @@ export default class WindDataFetcher extends DataFetcher {
     type: "UGRD" | "VGRD"
   ): Promise<Grib2Json> {
     const rawData = await getContent(`${url}&var_${type}=on`);
-    const baseFile = join(tmpdir(), `${type.toLowerCase()}.grib`);
-    const jsonFile = join(tmpdir(), `${type.toLowerCase()}.json`);
-    await fs.writeFile(baseFile, rawData, "binary");
-
-    await promisify(exec)(
-      `grib_set -r -s packingType=grid_simple ${baseFile} ${baseFile}`
-    );
-    await promisify(exec)(`grib_dump -j ${baseFile} > ${jsonFile}`);
-
-    const jsonData = await fs.readFile(jsonFile, "utf8");
-    const jsonObject = JSON.parse(jsonData);
+    const data = await this.grib2json(rawData);
+    const jsonObject = JSON.parse(data);
 
     const tmp = jsonObject.messages[0].reduce(
       (
@@ -231,5 +235,20 @@ export default class WindDataFetcher extends DataFetcher {
     }z.pgrb2${param.resolution == Resolution.MEDIUM ? "full" : ""}.${
       param.resolution
     }.f000&${LEVEL}&${BBOX}&dir=%2Fgfs.${param.date}%2F${param.time}`;
+  }
+
+  private grib2json(rawData: Buffer): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const cp = exec("grib_dump -j -", (err, stdout) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(stdout);
+        }
+      });
+      if (cp && cp.stdin) {
+        cp.stdin.end(rawData);
+      }
+    });
   }
 }

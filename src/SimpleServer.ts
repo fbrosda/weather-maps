@@ -74,6 +74,9 @@ export default class SimpleServer extends Server {
       case ".css":
         contentType = "text/css";
         break;
+      case ".png":
+        contentType = "image/png";
+        break;
       default:
         contentType = "text/plain";
         break;
