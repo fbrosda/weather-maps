@@ -23,7 +23,7 @@
     "eccodes-data-grib2": "^0.1.0",
     "eccodes-lib": "^0.1.2",
     "install": "^0.13.0",
-    "npm": "^6.13.2",
+    "npm": "^6.13.4",
     "tachyons": "^4.11.1"
   },
   "devDependencies": {
