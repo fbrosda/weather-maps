@@ -48,17 +48,13 @@ export default class CloudDataFetcher extends NoaaDataFetcher {
             (cloudData.maximum - cloudData.minimum)
         );
         png.data[i + 1] = Math.floor(
-          (255 * (precipitationData.values[k] - precipitationData.minimum)) /
-            (precipitationData.maximum - precipitationData.minimum)
+          255 *
+            Math.pow(
+              (precipitationData.values[k] - precipitationData.minimum) /
+                (precipitationData.maximum - precipitationData.minimum),
+              0.2
+            )
         );
-        png.data[i + 1] =
-          precipitationData.values[k] > 10
-            ? 255
-            : precipitationData.values[k] > 1
-            ? 125
-            : precipitationData.values[k] > 0.1
-            ? 10
-            : 0;
         png.data[i + 2] = Math.floor(
           (255 * (snowData.values[k] - snowData.minimum)) /
             (snowData.maximum - snowData.minimum)
