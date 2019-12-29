@@ -1,5 +1,21 @@
-export type Variable = "UGRD" | "VGRD";
-export type Level = "lev_10_m_above_ground";
+export enum Variable {
+  WindX = "UGRD",
+  WindY = "VGRD",
+  Precipitation = "APCP",
+  CloudCover = "TCDC",
+  SnowPercentage = "CPOFP"
+}
+export enum Level {
+  AboveGround10m = "lev_10_m_above_ground",
+  EntireAtmosphere = "ev_entire_atmosphere_%5C%28considered_as_a_single_layer%5C%29",
+  CloudLayer = "lev_convective_cloud_layer",
+  Surface = "lev_surface",
+  AllLevel = "all_lev"
+}
+export type VariableConfig = {
+  variable: Variable;
+  level: Level;
+};
 export enum Time {
   t0 = "00",
   t1 = "06",
@@ -15,8 +31,7 @@ export type NoaaParam = {
   date: string;
   time: Time;
   resolution: Resolution;
-  level: Level;
-  variables: Variable[];
+  variableConfigs: VariableConfig[];
 };
 export type Grib2Json = {
   source: string;

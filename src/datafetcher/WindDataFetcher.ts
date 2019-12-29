@@ -4,8 +4,16 @@ import { PNG } from "pngjs";
 import { promises as fs } from "fs";
 
 export default class WindDataFetcher extends NoaaDataFetcher {
-  variables: Variable[] = ["UGRD", "VGRD"];
-  level: Level = "lev_10_m_above_ground";
+  variableConfigs = [
+    {
+      variable: Variable.WindX,
+      level: Level.AboveGround10m
+    },
+    {
+      variable: Variable.WindY,
+      level: Level.AboveGround10m
+    }
+  ];
   prefix = "wind";
 
   constructor() {

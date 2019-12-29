@@ -3,8 +3,7 @@ import {
   Time,
   Resolution,
   NoaaParam,
-  Level,
-  Variable,
+  VariableConfig,
   Grib2Json
 } from "./NoaaTypes.js";
 import { getContent, ensureDir } from "../util.js";
@@ -17,8 +16,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
   basePath = `${process.env.PWD ?? ".."}/data`;
   param2file: Map<NoaaParam, Promise<Buffer>> = new Map();
 
-  abstract variables: Variable[];
-  abstract level: Level;
+  abstract variableConfigs: VariableConfig[];
   abstract prefix: string;
 
   abstract writePng(data: Grib2Json[], path: string): Promise<void>;
@@ -76,8 +74,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
       date: formatDate(),
       time: Time.t0,
       resolution: Resolution.LOW,
-      level: this.level,
-      variables: this.variables
+      variableConfigs: this.variableConfigs
     };
     if (query.dateTime) {
       // if (query.dateTime === "red" || query.dateTime === "green") {
@@ -124,7 +121,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
   private async loadUpstream(param: NoaaParam): Promise<boolean> {
     const url = this.getRequestUrl(param);
     const data = await Promise.all(
-      this.variables.map(variable => this.fetchGribJson(url, variable))
+      this.variableConfigs.map(variable => this.fetchGribJson(url, variable))
     );
 
     const pngPath = this.getPath(this.getName(param, "png"));
@@ -138,8 +135,13 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
     return true;
   }
 
-  private async fetchGribJson(url: string, type: Variable): Promise<Grib2Json> {
-    const rawData = await getContent(`${url}&var_${type}=on`);
+  private async fetchGribJson(
+    url: string,
+    config: VariableConfig
+  ): Promise<Grib2Json> {
+    const rawData = await getContent(
+      `${url}&${config.level}=on&var_${config.variable}=on`
+    );
     const data = await this.grib2json(rawData);
     const jsonObject = JSON.parse(data);
 
@@ -160,14 +162,14 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
       param.time
     }z.pgrb2${param.resolution == Resolution.MEDIUM ? "full" : ""}.${
       param.resolution
-    }.f000&${this.level}=on&${BBOX}&dir=%2Fgfs.${param.date}%2F${param.time}`;
+    }.f003&${BBOX}&dir=%2Fgfs.${param.date}%2F${param.time}`;
   }
 
   private grib2json(rawData: Buffer): Promise<string> {
     return new Promise((resolve, reject) => {
       const cp = exec(
         "grib_dump -j -",
-        { maxBuffer: 20 * 2 ** 20 },
+        { maxBuffer: 50 * 2 ** 20 },
         (err, stdout) => {
           if (err) {
             reject(err);
