@@ -239,7 +239,7 @@ export default class WindDataFetcher extends DataFetcher {
 
   private grib2json(rawData: Buffer): Promise<string> {
     return new Promise((resolve, reject) => {
-      const cp = exec("grib_dump -j -", (err, stdout) => {
+      const cp = exec("grib_dump -j -", {maxBuffer: 20 * 2 ** 20}, (err, stdout) => {
         if (err) {
           reject(err);
         } else {
