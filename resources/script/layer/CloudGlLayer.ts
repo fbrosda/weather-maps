@@ -17,6 +17,7 @@ type CloudInfo = {
 
 export default class GlLayer extends AbstractGlLayer {
   program?: ExtProgram;
+  start: number = (new Date).getTime();
 
   quadBuffer?: WebGLBuffer;
 
@@ -33,6 +34,7 @@ export default class GlLayer extends AbstractGlLayer {
     // const gl = this.gl;
     const [vert, frag] = this.shaders;
 
+    this.start = (new Date).getTime();
     this.program = this.createProgram(vert, frag);
 
     this.quadBuffer = this.createBuffer(
@@ -59,14 +61,19 @@ export default class GlLayer extends AbstractGlLayer {
       const aPos = prog.getAttribute("a_pos");
       const uMatrix = prog.getUniform("u_matrix");
       const uCloud = prog.getUniform("u_cloud");
+      const uTime = prog.getUniform("u_time");
 
       if (this.quadBuffer) {
         this.bindAttribute(this.quadBuffer, aPos, 2);
       }
       gl.uniformMatrix4fv(uMatrix, false, matrix);
       gl.uniform1i(uCloud, 0);
+      const now = (new Date).getTime();
+      gl.uniform1f(uTime, (now-this.start) / 50000);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      this.map.triggerRepaint();
     }
   }
 
