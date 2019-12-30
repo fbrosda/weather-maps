@@ -69,23 +69,22 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
     }
   }
 
-  private parse(query: { dateTime?: string; resolution?: string }): NoaaParam {
+  private parse(query: {
+    dateTime?: string;
+    resolution?: string;
+    forecast?: string;
+  }): NoaaParam {
+    const now = new Date();
+    now.setUTCHours(now.getUTCHours() - 6);
     const ret: NoaaParam = {
-      date: formatDate(),
-      time: Time.t0,
+      date: formatDate(now),
+      time: Time[`t${Math.floor(now.getHours() / 6)}` as keyof typeof Time],
+      forecast: 1,
       resolution: Resolution.LOW,
       variableConfigs: this.variableConfigs
     };
+
     if (query.dateTime) {
-      // if (query.dateTime === "red" || query.dateTime === "green") {
-      //   return {
-      //     date: query.dateTime,
-      //     time: Time.t0,
-      //     resolution: Resolution.LOW,
-      //     level: this.level,
-      //     variables: this.variables
-      //   };
-      // }
       const date = new Date(query.dateTime);
       if (date && !isNaN(date.getDate())) {
         ret.date = formatDate(date);
@@ -93,11 +92,16 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
           Time[`t${Math.floor(date.getHours() / 6)}` as keyof typeof Time];
       }
     }
+
     if (query.resolution) {
       const str = query.resolution;
       ret.resolution =
         Resolution[str.toUpperCase() as keyof typeof Resolution] ??
         ret.resolution;
+    }
+
+    if (query.forecast) {
+      ret.forecast = parseInt(query.forecast, 10);
     }
     return ret;
 
@@ -111,7 +115,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
   }
 
   private getName(param: NoaaParam, ext: string): string {
-    return `${this.prefix}_${param.date}_${param.time}_${param.resolution}.${ext}`;
+    return `${this.prefix}_${param.date}_${param.time}_${param.resolution}_${param.forecast}.${ext}`;
   }
 
   private getPath(name: string): string {
@@ -162,7 +166,9 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
       param.time
     }z.pgrb2${param.resolution == Resolution.MEDIUM ? "full" : ""}.${
       param.resolution
-    }.f003&${BBOX}&dir=%2Fgfs.${param.date}%2F${param.time}`;
+    }.f${(3 * param.forecast).toString().padStart(3, "0")}&${BBOX}&dir=%2Fgfs.${
+      param.date
+    }%2F${param.time}`;
   }
 
   private grib2json(rawData: Buffer): Promise<string> {

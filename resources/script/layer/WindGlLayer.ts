@@ -306,8 +306,8 @@ export default class GlLayer extends AbstractGlLayer {
     this.particleStateTexture1 = temp;
   }
 
-  async loadWindData(date?: string, resolution = "low"): Promise<void> {
-    const args = `?resolution=${resolution}&dateTime=${date ? date : ""}`;
+  async loadWindData(forecast?: string, resolution = "low"): Promise<void> {
+    const args = `?resolution=${resolution}&forecast=${forecast ?? ""}`;
     const [json, img] = await Promise.all([
       fetch<string>(`/data/wind.json${args}`),
       loadImage(`/data/wind.png${args}`)

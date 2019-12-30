@@ -7,7 +7,7 @@ export default class WindLayer extends AbstractCustomLayer {
   visibleCheckbox: HTMLInputElement;
   numParticlesInput: HTMLInputElement;
   resolutionSelect: HTMLSelectElement;
-  dateSelect: HTMLSelectElement;
+  forecastSelect: HTMLSelectElement;
   playButton: HTMLButtonElement;
   playInterval?: any;
 
@@ -36,8 +36,8 @@ export default class WindLayer extends AbstractCustomLayer {
     ) as HTMLSelectElement;
     this.createResolutionSelect();
 
-    this.dateSelect = document.getElementById("date") as HTMLSelectElement;
-    this.createDateSelect();
+    this.forecastSelect = document.getElementById("forecast") as HTMLSelectElement;
+    this.createForecastSelect();
 
     this.playButton = document.getElementById("play") as HTMLButtonElement;
     this.createPlayButton();
@@ -67,7 +67,7 @@ export default class WindLayer extends AbstractCustomLayer {
       document.removeEventListener("fullscreenchange", f)
     );
 
-    this.changeDateAndResolution();
+    this.changeForecastAndResolution();
   }
 
   toggle(): void {
@@ -79,16 +79,14 @@ export default class WindLayer extends AbstractCustomLayer {
     }
   }
 
-  private async changeDateAndResolution(): Promise<void> {
+  private async changeForecastAndResolution(): Promise<void> {
     if (this.layer) {
       const layer = this.layer as WindGlLayer;
-      const date = this.dateSelect.options[this.dateSelect.selectedIndex];
+      const forecast = this.forecastSelect.options[this.forecastSelect.selectedIndex];
       const resolution = this.resolutionSelect.options[
         this.resolutionSelect.selectedIndex
       ];
-      // this.toggle();
-      await layer.loadWindData(date.value, resolution.value);
-      // this.toggle();
+      await layer.loadWindData(forecast.value, resolution.value);
     }
   }
 
@@ -113,43 +111,43 @@ export default class WindLayer extends AbstractCustomLayer {
     }
 
     async function updateDate(this: WindLayer): Promise<void> {
-      const curIndex = this.dateSelect.selectedIndex;
-      const length = this.dateSelect.options.length;
-      this.dateSelect.selectedIndex = (curIndex + 1) % length;
-      await this.changeDateAndResolution();
+      const curIndex = this.forecastSelect.selectedIndex;
+      const length = this.forecastSelect.options.length;
+      this.forecastSelect.selectedIndex = (curIndex + 1) % length;
+      await this.changeForecastAndResolution();
 
       this.playInterval = setTimeout(func, 3000);
     }
   }
 
   private createResolutionSelect(): void {
-    const f = this.changeDateAndResolution.bind(this);
+    const f = this.changeForecastAndResolution.bind(this);
     this.resolutionSelect.addEventListener("change", f);
     this.handler.push(() =>
       this.resolutionSelect.removeEventListener("change", f)
     );
   }
 
-  private createDateSelect(): void {
+  private createForecastSelect(): void {
     const now = new Date();
     now.setUTCHours(Math.floor(now.getHours() / 6) * 6, 0, 0, 0);
-    for (let i = 0; i < 38; i++) {
-      now.setHours(now.getHours() - 6);
+    for (let i = 1; i < 80; i++) {
+      now.setHours(now.getHours() + 3);
 
       const child = document.createElement("option");
-      child.value = now.toISOString();
+      child.value = i.toString();
       child.innerHTML = now.toLocaleString();
-      this.dateSelect.appendChild(child);
+      this.forecastSelect.appendChild(child);
     }
 
     const f = (): void => {
       if (this.playInterval) {
         this.togglePlay();
       }
-      this.changeDateAndResolution();
+      this.changeForecastAndResolution();
     };
-    this.dateSelect.addEventListener("change", f);
-    this.handler.push(() => this.dateSelect.removeEventListener("change", f));
+    this.forecastSelect.addEventListener("change", f);
+    this.handler.push(() => this.forecastSelect.removeEventListener("change", f));
   }
 
   private createPlayButton(): void {
@@ -157,6 +155,7 @@ export default class WindLayer extends AbstractCustomLayer {
     this.playButton.addEventListener("click", f);
     this.handler.push(() => this.playButton.removeEventListener("click", f));
   }
+
   private createNumParticlesInput(): void {
     const f = this.setNumParticles.bind(this);
     this.numParticlesInput.addEventListener("change", f);

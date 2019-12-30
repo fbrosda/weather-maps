@@ -30,6 +30,7 @@ export enum Resolution {
 export type NoaaParam = {
   date: string;
   time: Time;
+  forecast: number;
   resolution: Resolution;
   variableConfigs: VariableConfig[];
 };
