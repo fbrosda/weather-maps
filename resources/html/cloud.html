@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cloud Map</title>
+
+    <link
+      href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <link href="/resources/css/tachyons.css" rel="stylesheet" />
+    <link href="/resources/css/style.css" rel="stylesheet" />
+
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.js"></script>
+    <script type="module" src="/resources/js/cloud.js"></script>
+  </head>
+  <body class="pa4 w-100 mw9 sans-serif">
+    <h1 class="f1 lh-title">OpenGL Clouds</h1>
+    <p class="fl w-80 lh-copy">
+      Rendering precipitation forecasts, containing clouds, rain and snow.
+    </p>
+    <div class="w-100 flex cf">
+      <div class="map w-80 br2 br--left" id="map"></div>
+    </div>
+  </body>
+</html>

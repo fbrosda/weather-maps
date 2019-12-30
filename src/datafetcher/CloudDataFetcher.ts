@@ -1,5 +1,5 @@
-import NoaaDataFetcher from "./NoaaDataFetcher.js";
-import { Variable, Level, Grib2Json } from "./NoaaTypes.js";
+import NoaaDataFetcher from "./NoaaDataFetcher";
+import { Variable, Level, Grib2Json } from "./NoaaTypes";
 import { PNG } from "pngjs";
 import { promises as fs } from "fs";
 

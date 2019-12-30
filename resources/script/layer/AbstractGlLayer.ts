@@ -56,6 +56,7 @@ export default abstract class AbstractGlLayer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+
     if (width && height && data instanceof Uint8Array) {
       gl.texImage2D(
         gl.TEXTURE_2D,

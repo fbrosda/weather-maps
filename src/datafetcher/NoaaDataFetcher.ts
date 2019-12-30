@@ -1,4 +1,4 @@
-import { DataFetcher, ReturnData } from "./DataFetcher.js";
+import { DataFetcher, ReturnData } from "./DataFetcher";
 import {
   Time,
   Resolution,

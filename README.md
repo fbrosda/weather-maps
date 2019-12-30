@@ -26,6 +26,7 @@ which were not available, by that time.
 - [x] Animate transition between timestamps
 - [ ] Cloud data
 - [ ] Combine cloud and wind data
+- [ ] Repeatable textures: Only possible, if width/height is a power of two.
 
 # Setup
 
