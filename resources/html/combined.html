@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Combined cloud/wind Map</title>
+
+    <link
+      href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <link href="/resources/css/tachyons.css" rel="stylesheet" />
+    <link href="/resources/css/style.css" rel="stylesheet" />
+
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.js"></script>
+    <script type="module" src="/resources/js/combined.js"></script>
+  </head>
+  <body class="pa4 w-100 mw9 sans-serif">
+    <h1 class="f1 lh-title">OpenGL Cloud Particles</h1>
+    <p class="fl w-80 lh-copy">
+      Rendering wind forecasts as particles via open-gl. The code is heavily
+      inspired from a
+      <a
+        href="https://blog.mapbox.com/how-i-built-a-wind-map-with-webgl-b63022b5537f"
+        >mapbox blogpost</a
+      >. The code is adjusted to use the 'CustomLayer'-feature, which didn't
+      exist, when the original example was created.
+    </p>
+    <div class="w-100 flex cf">
+      <div class="map w-80 br2 br--left" id="map"></div>
+      <div class="w-20 pa3 br2 ba br--right">
+        <div class="pb3">
+          <input id="visible" type="checkbox" checked="checked" />
+          <label for="visible" class="lh-copy ml1">Show wind</label>
+        </div>
+        <div class="pb3">
+          <label for="numParticles" class="lh-copy"
+            >Set number of particles:</label
+          >
+          <input
+            id="numParticles"
+            class="w-100 pa2"
+            type="number"
+            min="0"
+            max="20"
+            value="14"
+          />
+        </div>
+        <div class="pb3">
+          <label for="resolution" class="lh-copy">Select resolution:</label>
+          <select id="resolution" class="w-100">
+            <option value="LOW">low</option>
+            <option value="MEDIUM">medium</option>
+            <option value="HIGH">high</option>
+          </select>
+        </div>
+        <div class="pb3">
+          <label for="forecast" class="lh-copy">Select Forecast:</label>
+          <select id="forecast" class="w-100"></select>
+        </div>
+        <div class="pb3 pt3">
+          <button id="play" type="button" class="w-100">Play</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
