@@ -52,13 +52,12 @@ float turbulence(vec3 P) {
     return f;
 }
 float clouds(vec3 pos) {
-    float L = turbulence(pos*8.0);
-    return noise(vec3(.5, L, .5) * 1.0) + 0.7;
+    float L = turbulence(pos*2.0);
+    return noise(vec3(.5, .5, L) * .7) + 0.6;
 }
 
 void main() {
     vec4 data = texture2D(u_cloud, v_tex_pos);
-    float pattern = clouds(vec3(v_tex_pos, u_time) * data.xyz);
     if( data.z > 0.5 ) {
         float probability = normalize(data.z, 0.5, 1.0);
         gl_FragColor = vec4(mix(vec3(0.9, 0.7, 0.8), vec3(0.6, 0.1, 0.4), probability), 0.2);
@@ -70,5 +69,6 @@ void main() {
     } else {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
     }
-    /* gl_FragColor = vec4( pattern * vec3(1.0), 0.2); */
+    /* float pattern = clouds(vec3(v_tex_pos, u_time) * data.xyz); */
+    /* gl_FragColor = pattern * vec4(1.0); */
 }
