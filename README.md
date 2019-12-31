@@ -24,8 +24,13 @@ which were not available, by that time.
 - [x] Adjust wind speed and particle number by zoomlevel
 - [x] Timestamp selection in the ui
 - [x] Animate transition between timestamps
-- [ ] Cloud data
-- [ ] Combine cloud and wind data
+- [X] Cloud data
+- [X] Combine cloud and wind data
+- [ ] Open Problems in combined wind cloud layer:
+	- [ ] Flickering particles, as pseudo random numbers in the two update shaders
+		don't match
+	- [ ] Fade out cloud color
+	- [ ] Blending between cloud data
 - [ ] Repeatable textures: Only possible, if width/height is a power of two.
 
 # Setup
