@@ -15,7 +15,7 @@ type WindInfo = {
 
 export default class GlLayer extends AbstractGlLayer {
   fadeOpacity = 0.9; // how fast the particle trails fade on each frame
-  speedFactor = 0.3; // how fast the particles move
+  speedFactor = 0.2; // how fast the particles move
   dropRate = 0.003; // how often the particles move to a random place
   numParticles = 2 ** 14;
   particleTextureResolution = 0;
@@ -231,26 +231,41 @@ export default class GlLayer extends AbstractGlLayer {
     const nw = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
     const se = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
 
-    this.updateParticlePositions(gl, this.updatePositionProgram, seed, {nw: nw, se: se});
-    this.updateParticleColors(gl, this.updateColorProgram, seed, {nw: nw, se: se});
+    // update colors
+    this.updateParticleColors(gl, this.updateColorProgram, seed, {
+      nw: nw,
+      se: se
+    });
 
-    this.windMix = Math.max(0, this.windMix - 0.015);
+    // swap color textures
+    const tempColor = this.particleColorTexture0;
+    this.particleColorTexture0 = this.particleColorTexture1;
+    this.particleColorTexture1 = tempColor;
 
-    // swap the particle state textures so the new one becomes the current one
+    // load new colors
+    if (this.particleColorTexture0) {
+      this.bindTexture(this.particleColorTexture0, 1);
+    }
+
+    // update position
+    this.updateParticlePositions(gl, this.updatePositionProgram, seed, {
+      nw: nw,
+      se: se
+    });
+
+    // swap position textures
     const tempPos = this.particleStateTexture0;
     this.particleStateTexture0 = this.particleStateTexture1;
     this.particleStateTexture1 = tempPos;
 
-    const tempColor = this.particleColorTexture0;
-    this.particleColorTexture0 = this.particleColorTexture1;
-    this.particleColorTexture1 = tempColor;
+    this.windMix = Math.max(0, this.windMix - 0.015);
   }
 
   private updateParticlePositions(
     gl: WebGLRenderingContext,
     prog: ExtProgram,
     seed: number,
-    bounds: {nw: {x: number, y: number}, se:{x: number, y: number}}
+    bounds: { nw: { x: number; y: number }; se: { x: number; y: number } }
   ): void {
     if (this.framebuffer && this.particleStateTexture1) {
       this.bindFramebuffer(this.framebuffer, this.particleStateTexture1);
@@ -271,6 +286,7 @@ export default class GlLayer extends AbstractGlLayer {
 
     // Textures
     gl.uniform1i(prog.getUniform("u_particles"), 0);
+    gl.uniform1i(prog.getUniform("u_colors"), 1);
     gl.uniform1i(prog.getUniform("u_wind"), 2);
     gl.uniform1i(prog.getUniform("u_previous"), 3);
 
@@ -332,7 +348,7 @@ export default class GlLayer extends AbstractGlLayer {
     gl: WebGLRenderingContext,
     prog: ExtProgram,
     seed: number,
-    bounds: {nw: {x: number, y: number}, se:{x: number, y: number}}
+    bounds: { nw: { x: number; y: number }; se: { x: number; y: number } }
   ): void {
     if (this.framebuffer && this.particleColorTexture1) {
       this.bindFramebuffer(this.framebuffer, this.particleColorTexture1);

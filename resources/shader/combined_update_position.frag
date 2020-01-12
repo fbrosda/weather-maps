@@ -1,6 +1,7 @@
 precision highp float;
 
 uniform sampler2D u_particles;
+uniform sampler2D u_colors;
 
 uniform sampler2D u_wind;
 uniform vec2 u_wind_res;
@@ -48,6 +49,8 @@ void main() {
         color.r / 255.0 + color.b,
         color.g / 255.0 + color.a); // decode particle position from pixel RGBA
 
+    vec4 particleColor = texture2D(u_colors, v_tex_pos);
+
     vec2 velocity = mix(u_wind_min, u_wind_max, lookup_wind(u_wind, u_wind_res, pos));
     float speed_t = length(velocity) / length(u_wind_max);
 
@@ -61,22 +64,14 @@ void main() {
     float distortion = cos(radians(pos.y * 180.0 - 90.0));
     vec2 offset = vec2(velocity.x / distortion, -velocity.y) * 0.001 * u_speed_factor;
 
-    // update particle position, wrapping around the date line
-    pos = fract(1.0 + pos + offset);
-
-    vec2 seed = v_tex_pos * vec2(1.5 - u_rand_seed, u_rand_seed);
-    float drop = step(1.0 - u_drop_rate, rand(seed));
-
-    vec2 random_pos = vec2(
-        rand(seed + 1.3),
-        rand(seed + 2.1));
-    /* random_pos = u_nw + (random_pos * (u_se - u_nw)); */
-
-    if( u_nw.x <= pos.x && u_se.x >= pos.x &&
-            u_nw.y <= pos.y && u_se.y >= pos.y ) {
-        pos = mix(pos, random_pos, drop);
+    if( particleColor.a < 0.01 ) {
+        vec2 seed = v_tex_pos * vec2(1.5 - u_rand_seed, u_rand_seed);
+        vec2 random_pos = vec2(
+                rand(seed + 1.3),
+                rand(seed + 2.1));
+        pos = u_nw + (random_pos * (u_se - u_nw));
     } else {
-        pos = random_pos;
+        pos = fract(1.0 + pos + offset);
     }
 
     // encode the new particle position back into RGBA

@@ -44,7 +44,7 @@ vec4 lookup(const sampler2D u_texture, const vec2 res, const vec2 uv) {
     } else if(cloudColor.x > 0.0) {
         return vec4(vec3(cloudColor.x), 1.0);
     } else {
-        return vec4(0.0, 0.0, 0.0, 0.0);
+        return vec4(0.0);
     }
 }
 
@@ -54,27 +54,27 @@ void main() {
         posColor.r / 255.0 + posColor.b,
         posColor.g / 255.0 + posColor.a); // decode particle position from pixel RGBA
 
-    vec4 cloudColor = texture2D(u_colors, v_tex_pos);
+    vec4 particleColor = texture2D(u_colors, v_tex_pos);
 
-    vec2 seed = v_tex_pos * vec2(1.5 - u_rand_seed, u_rand_seed);
+    vec2 seed = (v_tex_pos + pos) * u_rand_seed;
     float drop = step(1.0 - u_drop_rate, rand(seed));
 
     vec2 random_pos = vec2(
             rand(seed + 1.3),
             rand(seed + 2.1));
-    /* random_pos = u_nw + (random_pos * (u_se - u_nw)); */
+    random_pos = u_nw + (random_pos * (u_se - u_nw));
 
     if( u_nw.x <= pos.x && u_se.x >= pos.x &&
             u_nw.y <= pos.y && u_se.y >= pos.y ) {
         if( drop > 0.5 ) {
-            cloudColor = lookup(u_clouds, u_cloud_res, random_pos);
-        } else if( cloudColor.z < 0.02) {
-            cloudColor = lookup(u_clouds, u_cloud_res, pos);
+            particleColor = vec4(0.0); //lookup(u_clouds, u_cloud_res, random_pos);
+        } else if( particleColor.a < 0.01) {
+            particleColor = lookup(u_clouds, u_cloud_res, pos);
         }
     } else {
-        cloudColor = lookup(u_clouds, u_cloud_res, random_pos);
+        particleColor = vec4(0.0); //lookup(u_clouds, u_cloud_res, random_pos);
     }
 
     // encode the new particle color back into RGBA
-    gl_FragColor = cloudColor;
+    gl_FragColor = particleColor;
 }

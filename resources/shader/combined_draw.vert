@@ -23,6 +23,6 @@ void main() {
         fract(a_index / u_particles_res),
         floor(a_index / u_particles_res) / u_particles_res));
 
-    gl_PointSize = 4.0;
+    gl_PointSize = 2.0;
     gl_Position = u_matrix * vec4(particle_pos, 0.0, 1.0);
 }
