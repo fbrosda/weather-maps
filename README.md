@@ -27,7 +27,7 @@ which were not available, by that time.
 - [X] Cloud data
 - [X] Combine cloud and wind data
 - [ ] Open Problems in combined wind cloud layer:
-	- [ ] Flickering particles, as pseudo random numbers in the two update shaders
+	- [X] Flickering particles, as pseudo random numbers in the two update shaders
 		don't match
 	- [ ] Fade out cloud color
 	- [ ] Blending between cloud data
