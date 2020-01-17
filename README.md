@@ -47,6 +47,13 @@ This project uses
 binary data fetched from [NOMADS](https://nomads.ncep.noaa.gov/) to json and
 png.
 
+## Run in container
+
+```
+sudo podman build --tag=weather-maps .
+sudo podman run -d --rm --name weather-maps -p 127.0.0.1:3000:3000 weather-maps
+```
+
 ## Start Server
 
 ```
