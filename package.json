@@ -23,18 +23,18 @@
     "pngjs": "^3.4.0"
   },
   "devDependencies": {
-    "@types/pngjs": "^3.4.0",
-    "@types/mapbox-gl": "^1.6.2",
-    "@types/node": "^12.12.24",
-    "@typescript-eslint/eslint-plugin": "^2.15.0",
-    "@typescript-eslint/parser": "^2.15.0",
+    "@types/mapbox-gl": "^1.8.1",
+    "@types/node": "^12.12.32",
+    "@types/pngjs": "^3.4.2",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "@typescript-eslint/parser": "^2.25.0",
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.9.0",
+    "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-prettier": "^3.1.2",
     "nodemon": "^2.0.2",
     "prettier": "^1.19.1",
     "tachyons": "^4.11.1",
-    "typescript": "^3.7.4"
+    "typescript": "^3.8.3"
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
