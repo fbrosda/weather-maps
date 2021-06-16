@@ -170,7 +170,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
       param.resolution
     }.f${(3 * param.forecast).toString().padStart(3, "0")}&${BBOX}&dir=%2Fgfs.${
       param.date
-    }%2F${param.time}`;
+    }%2F${param.time}%2Fatmos`;
   }
 
   private grib2json(rawData: Buffer): Promise<string> {
