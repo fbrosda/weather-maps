@@ -92,7 +92,7 @@ export default class SimpleServer extends Server {
     url: UrlWithParsedQuery
   ): Promise<void> {
     const { pathname, query } = url;
-    if( !pathname ) {
+    if (!pathname) {
       throw new Error("No fetcher path provided!");
     }
     const ext = extname(pathname);
@@ -100,7 +100,7 @@ export default class SimpleServer extends Server {
     const fetcher = this.fetcherFactory.get(type);
 
     if (fetcher) {
-      const data = await fetcher.fetch( query, ext );
+      const data = await fetcher.fetch(query, ext);
       res.writeHead(200, { "Content-Type": data.type });
       res.end(data.data);
     } else {

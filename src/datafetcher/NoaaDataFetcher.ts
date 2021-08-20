@@ -42,7 +42,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
   }
 
   private async load(name: string, param: NoaaParam): Promise<Buffer> {
-    // Make sure, that multiple requests for the same request don't spawn
+    // Make sure, that multiple requests for the same resource don't spawn
     // multiple upstream requests.
     if (this.param2file.has(param)) {
       await this.param2file.get(param);

@@ -26,9 +26,9 @@ export default class DataFetcherFactory {
   createFetcher(id: string): DataFetcher | undefined {
     if (id === "wind") {
       return new WindDataFetcher();
-    } else if( id === 'cloud' ) {
+    } else if (id === "cloud") {
       return new CloudDataFetcher();
-    } else if( id === 'colorramp' ) {
+    } else if (id === "colorramp") {
       return new ColorRampFetcher();
     }
     return;

@@ -20,7 +20,8 @@
   "dependencies": {
     "install": "^0.13.0",
     "npm": "^6.14.6",
-    "pngjs": "^3.4.0"
+    "pngjs": "^3.4.0",
+    "typescript-language-server": "^0.6.1"
   },
   "devDependencies": {
     "@types/mapbox-gl": "^1.8.1",
