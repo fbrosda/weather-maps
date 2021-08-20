@@ -37,13 +37,21 @@ export default class WindDataFetcher extends NoaaDataFetcher {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const i = (y * width + x) * 4;
-        const k = y * width + ((x + width / 2) % width);
+
+        // Conversion between x and longitude is linear, so nothing to do,
+        // only y to latitude contains non-linear part
+        const lat = y2lat(y, height);
+
         png.data[i + 0] = Math.floor(
-          (255 * (ugrdData.values[k] - ugrdData.minimum)) /
+          (255 *
+            (interpolate([x, lat], ugrdData.values, width) -
+              ugrdData.minimum)) /
             (ugrdData.maximum - ugrdData.minimum)
         );
         png.data[i + 1] = Math.floor(
-          (255 * (vgrdData.values[k] - vgrdData.minimum)) /
+          (255 *
+            (interpolate([x, lat], vgrdData.values, width) -
+              vgrdData.minimum)) /
             (vgrdData.maximum - vgrdData.minimum)
         );
         png.data[i + 2] = 0;
@@ -78,4 +86,30 @@ export default class WindDataFetcher extends NoaaDataFetcher {
       )
     );
   }
+}
+
+function y2lat(y: number, height: number): number {
+  const lat =
+    (360 / Math.PI) *
+      Math.atan(Math.exp(((180 - (y / height) * 360) * Math.PI) / 180)) -
+    90;
+  return ((-lat + 90) / 180) * height;
+}
+
+function interpolate(p: number[], v: number[], width: number): number {
+  const y = p[1];
+  const y1 = Math.floor(y);
+  const y2 = Math.ceil(y);
+
+  if (y1 === y2) {
+    return v[getIndex(p[0], y, width)];
+  } else {
+    const q1 = v[getIndex(p[0], y1, width)] * (y - y1);
+    const q2 = v[getIndex(p[0], y2, width)] * (y2 - y);
+    return q1 + q2; // y2 - y1 === 1
+  }
+}
+
+function getIndex(x: number, y: number, width: number): number {
+  return y * width + ((x + width / 2) % width);
 }
