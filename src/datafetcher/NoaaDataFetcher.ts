@@ -179,7 +179,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
   private async grib2json(rawData: Buffer): Promise<string> {
     const gribDump = await lookpath(GRIB_DUMP);
     if (!gribDump) {
-      throw new Error("Could not find binary: " + GRIB_DUMP);
+      throw new Error("Could not find executable: " + GRIB_DUMP);
     }
     return new Promise((resolve, reject) => {
       const cp = exec(
