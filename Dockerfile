@@ -1,5 +1,5 @@
 # ---- Build Image
-FROM node:13-buster
+FROM node:16-bullseye
 WORKDIR /usr/src/github.com/fbrosda/weather-maps/
 
 COPY package.json .
@@ -18,7 +18,7 @@ RUN npm run build
 COPY LICENSE ./dist/
 
 # ---- Final Image
-FROM node:13-buster
+FROM node:16-bullseye
 
 RUN apt update && apt install -y libeccodes-tools vim
 
