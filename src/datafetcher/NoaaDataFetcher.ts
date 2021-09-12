@@ -191,4 +191,30 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
       }
     });
   }
+
+  y2lat(y: number, height: number): number {
+    const lat =
+      (360 / Math.PI) *
+        Math.atan(Math.exp(((180 - (y / height) * 360) * Math.PI) / 180)) -
+      90;
+    return ((-lat + 90) / 180) * height;
+  }
+
+  interpolate(p: number[], v: number[], width: number): number {
+    const y = p[1];
+    const y1 = Math.floor(y);
+    const y2 = Math.ceil(y);
+
+    if (y1 === y2) {
+      return v[this.getIndex(p[0], y, width)];
+    } else {
+      const q1 = v[this.getIndex(p[0], y1, width)] * (y - y1);
+      const q2 = v[this.getIndex(p[0], y2, width)] * (y2 - y);
+      return q1 + q2; // y2 - y1 === 1
+    }
+  }
+
+  private getIndex(x: number, y: number, width: number): number {
+    return y * width + ((x + width / 2) % width);
+  }
 }

@@ -42,21 +42,26 @@ export default class CloudDataFetcher extends NoaaDataFetcher {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const i = (y * width + x) * 4;
-        const k = y * width + ((x + width / 2) % width);
+        const lat = this.y2lat(y, height);
         png.data[i + 0] = Math.floor(
-          (255 * (cloudData.values[k] - cloudData.minimum)) /
+          (255 *
+            (this.interpolate([x, lat], cloudData.values, width) -
+              cloudData.minimum)) /
             (cloudData.maximum - cloudData.minimum)
         );
         png.data[i + 1] = Math.floor(
           255 *
             Math.pow(
-              (precipitationData.values[k] - precipitationData.minimum) /
+              (this.interpolate([x, lat], precipitationData.values, width) -
+                precipitationData.minimum) /
                 (precipitationData.maximum - precipitationData.minimum),
               0.2
             )
         );
         png.data[i + 2] = Math.floor(
-          (255 * (snowData.values[k] - snowData.minimum)) /
+          (255 *
+            (this.interpolate([x, lat], snowData.values, width) -
+              snowData.minimum)) /
             (snowData.maximum - snowData.minimum)
         );
         png.data[i + 3] = 255;
