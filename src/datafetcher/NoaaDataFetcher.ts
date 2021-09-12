@@ -10,6 +10,9 @@ import { getContent, ensureDir } from "../util.js";
 import { promises as fs } from "fs";
 import { exec } from "child_process";
 import { join } from "path";
+import { lookpath } from "lookpath";
+
+const GRIB_DUMP = "grib_dump";
 
 export default abstract class NoaaDataFetcher extends DataFetcher {
   baseurl = `https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_`;
@@ -173,17 +176,25 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
     }%2F${param.time}%2Fatmos`;
   }
 
-  private grib2json(rawData: Buffer): Promise<string> {
+  private async grib2json(rawData: Buffer): Promise<string> {
+    const gribDump = await lookpath(GRIB_DUMP);
+    if (!gribDump) {
+      throw new Error("Could not find binary: " + GRIB_DUMP);
+    }
     return new Promise((resolve, reject) => {
       const cp = exec(
-        "grib_dump -j -",
+        `${gribDump} -j -`,
         { maxBuffer: 50 * 2 ** 20 },
-        (err, stdout) => {
+        (err, stdout, stderr) => {
           if (err) {
             reject(err);
-          } else {
-            resolve(stdout);
+            return;
           }
+          if (stderr) {
+            reject(new Error(stderr));
+            return;
+          }
+          resolve(stdout);
         }
       );
       if (cp && cp.stdin) {

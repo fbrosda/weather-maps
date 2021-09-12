@@ -121,10 +121,10 @@ export default class SimpleServer extends Server {
 
     if (error.code === "ENOENT" || error.message.endsWith("not found")) {
       res.writeHead(404);
-      res.end("404 not found");
+      res.end(error.message);
     } else {
       res.writeHead(500);
-      res.end("500 internal server error");
+      res.end(error.message);
     }
   }
 }
