@@ -4,7 +4,7 @@ import {
   Resolution,
   NoaaParam,
   VariableConfig,
-  Grib2Json
+  Grib2Json,
 } from "./NoaaTypes.js";
 import { getContent, ensureDir } from "../util.js";
 import { promises as fs } from "fs";
@@ -84,7 +84,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
       time: Time[`t${Math.floor(now.getHours() / 6)}` as keyof typeof Time],
       forecast: 1,
       resolution: Resolution.LOW,
-      variableConfigs: this.variableConfigs
+      variableConfigs: this.variableConfigs,
     };
 
     if (query.dateTime) {
@@ -112,10 +112,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
       const d = date ?? new Date();
       return `${d.getFullYear()}${(d.getMonth() + 1)
         .toString()
-        .padStart(2, "0")}${d
-        .getDate()
-        .toString()
-        .padStart(2, "0")}`;
+        .padStart(2, "0")}${d.getDate().toString().padStart(2, "0")}`;
     }
   }
 
@@ -130,7 +127,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
   private async loadUpstream(param: NoaaParam): Promise<boolean> {
     const url = this.getRequestUrl(param);
     const data = await Promise.all(
-      this.variableConfigs.map(variable => this.fetchGribJson(url, variable))
+      this.variableConfigs.map((variable) => this.fetchGribJson(url, variable))
     );
 
     const pngPath = this.getPath(this.getName(param, "png"));
@@ -138,7 +135,7 @@ export default abstract class NoaaDataFetcher extends DataFetcher {
 
     await Promise.all([
       this.writePng(data, pngPath),
-      this.writeJson(data, jsonPath)
+      this.writeJson(data, jsonPath),
     ]);
 
     return true;

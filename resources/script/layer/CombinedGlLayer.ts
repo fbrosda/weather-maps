@@ -58,7 +58,7 @@ export default class GlLayer extends AbstractGlLayer {
       drawFrag,
       screenFrag,
       updatePositionFrag,
-      updateColorFrag
+      updateColorFrag,
     ] = this.shaders;
 
     this.drawProgram = this.createProgram(drawVert, drawFrag);
@@ -234,7 +234,7 @@ export default class GlLayer extends AbstractGlLayer {
     // update colors
     this.updateParticleColors(gl, this.updateColorProgram, seed, {
       nw: nw,
-      se: se
+      se: se,
     });
 
     // swap color textures
@@ -250,7 +250,7 @@ export default class GlLayer extends AbstractGlLayer {
     // update position
     this.updateParticlePositions(gl, this.updatePositionProgram, seed, {
       nw: nw,
-      se: se
+      se: se,
     });
 
     // swap position textures
@@ -413,7 +413,7 @@ export default class GlLayer extends AbstractGlLayer {
     const [json, windImg, cloudImg] = await Promise.all([
       fetch<string>(`/data/wind.json${args}`),
       loadImage(`/data/wind.png${args}`),
-      loadImage(`/data/cloud.png${args}`)
+      loadImage(`/data/cloud.png${args}`),
     ]);
     this.windData = rotate(this.windData, JSON.parse(json));
     this.windTexture = rotate(

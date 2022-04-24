@@ -28,7 +28,7 @@ class GlLayer extends AbstractGlLayer {
         berlin.x,
         berlin.y,
         kyiv.x,
-        kyiv.y
+        kyiv.y,
       ])
     );
   }
@@ -55,7 +55,7 @@ class GlLayer extends AbstractGlLayer {
   private createPoint(lng: number, lat: number): mapboxgl.MercatorCoordinate {
     return mapboxgl.MercatorCoordinate.fromLngLat({
       lng: lng,
-      lat: lat
+      lat: lat,
     });
   }
 }
@@ -67,7 +67,7 @@ export default class TriangleLayer extends AbstractCustomLayer {
     super("triangle", map);
     this.shaders = Promise.all([
       this.loadShaderSource(ShaderType.VERTEX),
-      this.loadShaderSource(ShaderType.FRAGMENT)
+      this.loadShaderSource(ShaderType.FRAGMENT),
     ]);
   }
 

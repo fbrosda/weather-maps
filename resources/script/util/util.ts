@@ -1,12 +1,12 @@
 export enum ShaderType {
   VERTEX = "vert",
-  FRAGMENT = "frag"
+  FRAGMENT = "frag",
 }
 
 export function loadImage(src: string): Promise<HTMLImageElement> {
   const image = document.createElement("img");
   image.src = src;
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     image.onload = (): void => {
       resolve(image);
     };
@@ -31,7 +31,7 @@ export function fetch<T>(url: string, method = "GET"): Promise<T> {
       } else {
         reject({
           status: request.status,
-          statusText: request.statusText
+          statusText: request.statusText,
         });
       }
     }

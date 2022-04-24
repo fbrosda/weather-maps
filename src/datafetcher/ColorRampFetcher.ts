@@ -10,7 +10,7 @@ const defaultRampColors: IndexColor[] = [
   [0.4, "#fee08b"],
   [0.5, "#fdae61"],
   [0.6, "#f46d43"],
-  [1.0, "#d53e4f"]
+  [1.0, "#d53e4f"],
 ];
 
 type RGBA = {
@@ -33,7 +33,7 @@ export default class ColorRampFetcher extends DataFetcher {
       colorType: 2,
       filterType: 4,
       width: 1,
-      height: height
+      height: height,
     });
     const colors = this.parseQuery(param);
 
@@ -59,11 +59,11 @@ export default class ColorRampFetcher extends DataFetcher {
 
   private parseQuery(param: { colors?: string }): IndexColor[] {
     if (param.colors) {
-      const colors = param.colors.split(",").map(arg => arg.split(":"));
+      const colors = param.colors.split(",").map((arg) => arg.split(":"));
       if (colors.length) {
-        const tmp: IndexColor[] = colors.map(arg => [
+        const tmp: IndexColor[] = colors.map((arg) => [
           parseFloat(arg[0]) ?? 0,
-          arg[1]
+          arg[1],
         ]);
         return tmp.sort(sortColors);
       }
@@ -91,7 +91,7 @@ export default class ColorRampFetcher extends DataFetcher {
       r: parseInt(r, 16),
       g: parseInt(g, 16),
       b: parseInt(b, 16),
-      a: 255
+      a: 255,
     };
   }
 }

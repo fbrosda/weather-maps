@@ -12,7 +12,7 @@ export function getContent(url: string): Promise<Buffer> {
     const lib = url.startsWith("https") ? https : http;
     const request = lib.get(url, handleResponse);
 
-    request.on("error", err => reject(err));
+    request.on("error", (err) => reject(err));
 
     function handleResponse(response: http.IncomingMessage): void {
       const statusCode =
@@ -24,7 +24,7 @@ export function getContent(url: string): Promise<Buffer> {
       }
 
       const body: Buffer[] = [];
-      response.on("data", chunk => body.push(chunk));
+      response.on("data", (chunk) => body.push(chunk));
       response.on("end", () => resolve(Buffer.concat(body)));
     }
   }
@@ -33,7 +33,7 @@ export function getContent(url: string): Promise<Buffer> {
 export async function ensureDir(path: string, mask = 0o755): Promise<void> {
   try {
     await fs.mkdir(path, mask);
-  } catch (e) {
+  } catch (e: any) {
     if (e.code !== "EEXIST") {
       throw e;
     }

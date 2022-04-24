@@ -18,7 +18,7 @@ export default class WindLayer extends AbstractCustomLayer {
       this.loadShaderSource(ShaderType.VERTEX, "quad"),
       this.loadShaderSource(ShaderType.FRAGMENT, "draw"),
       this.loadShaderSource(ShaderType.FRAGMENT, "screen"),
-      this.loadShaderSource(ShaderType.FRAGMENT, "update")
+      this.loadShaderSource(ShaderType.FRAGMENT, "update"),
     ]);
 
     this.visibleCheckbox = document.getElementById(
@@ -36,7 +36,9 @@ export default class WindLayer extends AbstractCustomLayer {
     ) as HTMLSelectElement;
     this.createResolutionSelect();
 
-    this.forecastSelect = document.getElementById("forecast") as HTMLSelectElement;
+    this.forecastSelect = document.getElementById(
+      "forecast"
+    ) as HTMLSelectElement;
     this.createForecastSelect();
 
     this.playButton = document.getElementById("play") as HTMLButtonElement;
@@ -82,10 +84,10 @@ export default class WindLayer extends AbstractCustomLayer {
   private async changeForecastAndResolution(): Promise<void> {
     if (this.layer) {
       const layer = this.layer as WindGlLayer;
-      const forecast = this.forecastSelect.options[this.forecastSelect.selectedIndex];
-      const resolution = this.resolutionSelect.options[
-        this.resolutionSelect.selectedIndex
-      ];
+      const forecast =
+        this.forecastSelect.options[this.forecastSelect.selectedIndex];
+      const resolution =
+        this.resolutionSelect.options[this.resolutionSelect.selectedIndex];
       await layer.loadWindData(forecast.value, resolution.value);
     }
   }
@@ -147,7 +149,9 @@ export default class WindLayer extends AbstractCustomLayer {
       this.changeForecastAndResolution();
     };
     this.forecastSelect.addEventListener("change", f);
-    this.handler.push(() => this.forecastSelect.removeEventListener("change", f));
+    this.handler.push(() =>
+      this.forecastSelect.removeEventListener("change", f)
+    );
   }
 
   private createPlayButton(): void {

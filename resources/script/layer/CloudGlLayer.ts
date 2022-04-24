@@ -17,7 +17,7 @@ type CloudInfo = {
 
 export default class GlLayer extends AbstractGlLayer {
   program?: ExtProgram;
-  start: number = (new Date).getTime();
+  start: number = new Date().getTime();
 
   quadBuffer?: WebGLBuffer;
 
@@ -34,7 +34,7 @@ export default class GlLayer extends AbstractGlLayer {
     // const gl = this.gl;
     const [vert, frag] = this.shaders;
 
-    this.start = (new Date).getTime();
+    this.start = new Date().getTime();
     this.program = this.createProgram(vert, frag);
 
     this.quadBuffer = this.createBuffer(
@@ -68,8 +68,8 @@ export default class GlLayer extends AbstractGlLayer {
       }
       gl.uniformMatrix4fv(uMatrix, false, matrix);
       gl.uniform1i(uCloud, 0);
-      const now = (new Date).getTime();
-      gl.uniform1f(uTime, (now-this.start) / 50000);
+      const now = new Date().getTime();
+      gl.uniform1f(uTime, (now - this.start) / 50000);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -81,7 +81,7 @@ export default class GlLayer extends AbstractGlLayer {
     const args = `?resolution=${resolution}&forecast=${forecast}`;
     const [json, img] = await Promise.all([
       fetch<string>(`/data/cloud.json${args}`),
-      loadImage(`/data/cloud.png${args}`)
+      loadImage(`/data/cloud.png${args}`),
     ]);
     this.cloudData = rotate(this.cloudData, JSON.parse(json));
     this.cloudTexture = rotate(

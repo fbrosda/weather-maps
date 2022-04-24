@@ -7,12 +7,12 @@ export default class WindDataFetcher extends NoaaDataFetcher {
   variableConfigs = [
     {
       variable: Variable.WindX,
-      level: Level.AboveGround10m
+      level: Level.AboveGround10m,
     },
     {
       variable: Variable.WindY,
-      level: Level.AboveGround10m
-    }
+      level: Level.AboveGround10m,
+    },
   ];
   prefix = "wind";
 
@@ -31,7 +31,7 @@ export default class WindDataFetcher extends NoaaDataFetcher {
       colorType: 2,
       filterType: 4,
       width: width,
-      height: height
+      height: height,
     });
 
     for (let y = 0; y < height; y++) {
@@ -59,7 +59,7 @@ export default class WindDataFetcher extends NoaaDataFetcher {
     }
     const pngBuffer = PNG.sync.write(png, {
       colorType: 2,
-      filterType: 4
+      filterType: 4,
     });
     return fs.writeFile(path, pngBuffer);
   }
@@ -78,7 +78,7 @@ export default class WindDataFetcher extends NoaaDataFetcher {
           uMin: ugrdData.minimum,
           uMax: ugrdData.maximum,
           vMin: vgrdData.minimum,
-          vMax: vgrdData.maximum
+          vMax: vgrdData.maximum,
         },
         null,
         2

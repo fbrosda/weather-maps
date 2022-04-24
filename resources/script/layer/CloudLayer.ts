@@ -9,7 +9,7 @@ export default class CloudLayer extends AbstractCustomLayer {
     super("cloud", map);
     this.shaders = Promise.all([
       this.loadShaderSource(ShaderType.VERTEX),
-      this.loadShaderSource(ShaderType.FRAGMENT)
+      this.loadShaderSource(ShaderType.FRAGMENT),
     ]);
   }
 

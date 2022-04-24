@@ -7,16 +7,16 @@ export default class CloudDataFetcher extends NoaaDataFetcher {
   variableConfigs = [
     {
       variable: Variable.CloudCover,
-      level: Level.CloudLayer
+      level: Level.CloudLayer,
     },
     {
       variable: Variable.Precipitation,
-      level: Level.Surface
+      level: Level.Surface,
     },
     {
       variable: Variable.SnowPercentage,
-      level: Level.Surface
-    }
+      level: Level.Surface,
+    },
   ];
   prefix = "cloud";
 
@@ -36,7 +36,7 @@ export default class CloudDataFetcher extends NoaaDataFetcher {
       colorType: 2,
       filterType: 4,
       width: width,
-      height: height
+      height: height,
     });
 
     for (let y = 0; y < height; y++) {
@@ -69,7 +69,7 @@ export default class CloudDataFetcher extends NoaaDataFetcher {
     }
     const pngBuffer = PNG.sync.write(png, {
       colorType: 2,
-      filterType: 4
+      filterType: 4,
     });
     return fs.writeFile(path, pngBuffer);
   }
@@ -91,7 +91,7 @@ export default class CloudDataFetcher extends NoaaDataFetcher {
           pMin: precipitationData.minimum,
           pMax: precipitationData.maximum,
           sMin: snowData.minimum,
-          sMax: snowData.maximum
+          sMax: snowData.maximum,
         },
         null,
         2

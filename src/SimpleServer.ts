@@ -32,7 +32,8 @@ export default class SimpleServer extends Server {
         const url: UrlWithParsedQuery = parse(req.url, true);
         await this.handleRoute(url, res);
       } catch (e) {
-        this.handleError(res, e); // 404
+	if(e instanceof Error)
+          this.handleError(res, e); // 404
       }
     }
   }
@@ -110,7 +111,7 @@ export default class SimpleServer extends Server {
 
   async requestServerInfo(res: ServerResponse): Promise<void> {
     const ret = {
-      memory: process.memoryUsage()
+      memory: process.memoryUsage(),
     };
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(ret));

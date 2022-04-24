@@ -310,7 +310,7 @@ export default class GlLayer extends AbstractGlLayer {
     const args = `?resolution=${resolution}&forecast=${forecast ?? ""}`;
     const [json, img] = await Promise.all([
       fetch<string>(`/data/wind.json${args}`),
-      loadImage(`/data/wind.png${args}`)
+      loadImage(`/data/wind.png${args}`),
     ]);
     this.windData = rotate(this.windData, JSON.parse(json));
     this.windTexture = rotate(

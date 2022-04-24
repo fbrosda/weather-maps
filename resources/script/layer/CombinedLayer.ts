@@ -19,7 +19,7 @@ export default class CombinedLayer extends AbstractCustomLayer {
       this.loadShaderSource(ShaderType.FRAGMENT, "draw"),
       this.loadShaderSource(ShaderType.FRAGMENT, "screen"),
       this.loadShaderSource(ShaderType.FRAGMENT, "update_position"),
-      this.loadShaderSource(ShaderType.FRAGMENT, "update_color")
+      this.loadShaderSource(ShaderType.FRAGMENT, "update_color"),
     ]);
 
     this.visibleCheckbox = document.getElementById(
@@ -85,12 +85,10 @@ export default class CombinedLayer extends AbstractCustomLayer {
   private async changeForecastAndResolution(): Promise<void> {
     if (this.layer) {
       const layer = this.layer as CombinedGlLayer;
-      const forecast = this.forecastSelect.options[
-        this.forecastSelect.selectedIndex
-      ];
-      const resolution = this.resolutionSelect.options[
-        this.resolutionSelect.selectedIndex
-      ];
+      const forecast =
+        this.forecastSelect.options[this.forecastSelect.selectedIndex];
+      const resolution =
+        this.resolutionSelect.options[this.resolutionSelect.selectedIndex];
       await layer.loadWindData(forecast.value, resolution.value);
     }
   }

@@ -11,8 +11,8 @@ export default class BaseMap extends mapboxgl.Map {
       zoom: 2,
     });
 
-    this.addControl(new mapboxgl.FullscreenControl())
-    this.addControl(new mapboxgl.ScaleControl())
-    this.addControl(new mapboxgl.NavigationControl({showCompass: false}))
+    this.addControl(new mapboxgl.FullscreenControl());
+    this.addControl(new mapboxgl.ScaleControl());
+    this.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
   }
 }
