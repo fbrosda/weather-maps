@@ -20,23 +20,23 @@
   "dependencies": {
     "install": "^0.13.0",
     "lookpath": "^1.2.2",
-    "npm": "^6.14.6",
-    "pngjs": "^3.4.0",
-    "typescript-language-server": "^0.6.1"
+    "npm": "^8.7.0",
+    "pngjs": "^6.0.0",
+    "typescript-language-server": "^0.9.7"
   },
   "devDependencies": {
-    "@types/mapbox-gl": "^1.8.1",
-    "@types/node": "^12.12.32",
-    "@types/pngjs": "^3.4.2",
-    "@typescript-eslint/eslint-plugin": "^2.25.0",
-    "@typescript-eslint/parser": "^2.25.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-prettier": "^3.1.2",
+    "@types/mapbox-gl": "^1.13.3",
+    "@types/node": "^17.0.25",
+    "@types/pngjs": "^6.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.20.0",
+    "@typescript-eslint/parser": "^5.20.0",
+    "eslint": "^8.14.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "nodemon": "^2.0.2",
-    "prettier": "^1.19.1",
+    "prettier": "^2.6.2",
     "tachyons": "^4.11.1",
-    "typescript": "^3.8.3"
+    "typescript": "^4.6.3"
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
