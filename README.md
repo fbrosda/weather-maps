@@ -26,6 +26,7 @@ which were not available, by that time.
 - [x] Animate transition between timestamps
 - [X] Cloud data
 - [X] Combine cloud and wind data
+- [ ] Mapbox -> Maplibre
 - [ ] Open Problems in combined wind cloud layer:
 	- [X] Flickering particles, as pseudo random numbers in the two update shaders
 		don't match
