@@ -1,7 +1,7 @@
 # About
 
 This project is a little playground to experiment with custom webgl layers in
-mapbox-gl.
+maplibre-gl.
 
 Examples:
 
