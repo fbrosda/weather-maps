@@ -1,18 +1,18 @@
-declare let mapboxgl: typeof import("mapbox-gl");
+declare let maplibregl: typeof import("maplibre-gl");
 
-export default class BaseMap extends mapboxgl.Map {
+export default class BaseMap extends maplibregl.Map {
   constructor(id: string) {
     super({
       container: id,
-      style: "mapbox://styles/mapbox/dark-v10",
+      style: "https://demotiles.maplibre.org/style.json",
       center: [10, 47],
       minZoom: 1,
       maxZoom: 10,
       zoom: 2,
     });
 
-    this.addControl(new mapboxgl.FullscreenControl());
-    this.addControl(new mapboxgl.ScaleControl());
-    this.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
+    this.addControl(new maplibregl.FullscreenControl({}));
+    this.addControl(new maplibregl.ScaleControl({}));
+    this.addControl(new maplibregl.NavigationControl({ showCompass: false }));
   }
 }

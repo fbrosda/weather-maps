@@ -1,4 +1,4 @@
-declare let mapboxgl: typeof import("mapbox-gl");
+declare let maplibregl: typeof import("maplibre-gl");
 
 import AbstractGlLayer from "./AbstractGlLayer.js";
 import AbstractCustomLayer from "./AbstractCustomLayer.js";
@@ -9,7 +9,7 @@ class GlLayer extends AbstractGlLayer {
   program?: ExtProgram;
   buffer?: WebGLBuffer | null;
 
-  constructor(shaders: string[], map: mapboxgl.Map, gl: WebGLRenderingContext) {
+  constructor(shaders: string[], map: maplibregl.Map, gl: WebGLRenderingContext) {
     super(shaders, map, gl);
     this.init();
   }
@@ -52,8 +52,8 @@ class GlLayer extends AbstractGlLayer {
     }
   }
 
-  private createPoint(lng: number, lat: number): mapboxgl.MercatorCoordinate {
-    return mapboxgl.MercatorCoordinate.fromLngLat({
+  private createPoint(lng: number, lat: number): maplibregl.MercatorCoordinate {
+    return maplibregl.MercatorCoordinate.fromLngLat({
       lng: lng,
       lat: lat,
     });
@@ -63,7 +63,7 @@ class GlLayer extends AbstractGlLayer {
 export default class TriangleLayer extends AbstractCustomLayer {
   shaders: Promise<string[]>;
 
-  constructor(map?: mapboxgl.Map) {
+  constructor(map?: maplibregl.Map) {
     super("triangle", map);
     this.shaders = Promise.all([
       this.loadShaderSource(ShaderType.VERTEX),
@@ -71,7 +71,7 @@ export default class TriangleLayer extends AbstractCustomLayer {
     ]);
   }
 
-  async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
+  async onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): Promise<void> {
     const shaders = await this.shaders;
     this.layer = new GlLayer(shaders, map, gl);
   }

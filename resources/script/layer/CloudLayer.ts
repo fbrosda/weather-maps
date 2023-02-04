@@ -5,7 +5,7 @@ import { ShaderType } from "../util/util.js";
 export default class CloudLayer extends AbstractCustomLayer {
   shaders: Promise<string[]>;
 
-  constructor(map?: mapboxgl.Map) {
+  constructor(map?: maplibregl.Map) {
     super("cloud", map);
     this.shaders = Promise.all([
       this.loadShaderSource(ShaderType.VERTEX),
@@ -13,7 +13,7 @@ export default class CloudLayer extends AbstractCustomLayer {
     ]);
   }
 
-  async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
+  async onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): Promise<void> {
     const shaders = await this.shaders;
     const layer = new CloudGlLayer(shaders, map, gl);
     this.layer = layer;

@@ -11,7 +11,7 @@ export default class CombinedLayer extends AbstractCustomLayer {
   playButton: HTMLButtonElement;
   playInterval?: any;
 
-  constructor(map?: mapboxgl.Map) {
+  constructor(map?: maplibregl.Map) {
     super("combined", map);
     this.shaders = Promise.all([
       this.loadShaderSource(ShaderType.VERTEX, "draw"),
@@ -46,7 +46,7 @@ export default class CombinedLayer extends AbstractCustomLayer {
     this.createPlayButton();
   }
 
-  async onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): Promise<void> {
+  async onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): Promise<void> {
     const shaders = await this.shaders;
     const layer = new CombinedGlLayer(shaders, map, gl);
     this.layer = layer;

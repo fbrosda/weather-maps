@@ -44,8 +44,6 @@ export default class SimpleServer extends Server {
 
     if (path === "/") {
       ret = this.requestFile(res, "/resources/html/index.html");
-    } else if (path === "/mapboxToken") {
-      ret = this.requestFile(res, "/.accessToken.txt");
     } else if (path === "/favicon.ico") {
       ret = this.requestFile(res, "/resources/img/favicon.png");
     } else if (path && path.startsWith("/resources/")) {

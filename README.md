@@ -36,11 +36,6 @@ which were not available, by that time.
 
 # Setup
 
-## Access Token
-
-Get a access token from mapbox and save in the root dir of this project as
-`.accessToken.txt`.
-
 ## External Dependencies
 
 This project uses

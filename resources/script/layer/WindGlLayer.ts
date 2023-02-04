@@ -1,4 +1,4 @@
-declare let mapboxgl: typeof import("mapbox-gl");
+declare let maplibregl: typeof import("maplibre-gl");
 
 import AbstractGlLayer from "./AbstractGlLayer.js";
 import ExtProgram from "../util/ExtProgram.js";
@@ -42,7 +42,7 @@ export default class GlLayer extends AbstractGlLayer {
   windTexture: WebGLTexture[] = [];
   windMix = 0;
 
-  constructor(shaders: string[], map: mapboxgl.Map, gl: WebGLRenderingContext) {
+  constructor(shaders: string[], map: maplibregl.Map, gl: WebGLRenderingContext) {
     super(shaders, map, gl);
     this.init();
   }
@@ -285,8 +285,8 @@ export default class GlLayer extends AbstractGlLayer {
     gl.uniform1f(prog.getUniform("u_drop_rate_bump"), this.dropRateBump);
 
     const bounds = this.map.getBounds();
-    const nw = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
-    const se = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
+    const nw = maplibregl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
+    const se = maplibregl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
     gl.uniform2f(
       prog.getUniform("u_nw"),
       Math.min(1, Math.max(nw.x, 0)),

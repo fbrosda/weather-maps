@@ -1,5 +1,3 @@
-// declare let mapboxgl: typeof import("mapbox-gl");
-
 import AbstractGlLayer from "./AbstractGlLayer.js";
 import ExtProgram from "../util/ExtProgram.js";
 import { loadImage, fetch } from "../util/util.js";
@@ -25,7 +23,7 @@ export default class GlLayer extends AbstractGlLayer {
   cloudTexture: WebGLTexture[] = [];
   cloudMix = 0;
 
-  constructor(shaders: string[], map: mapboxgl.Map, gl: WebGLRenderingContext) {
+  constructor(shaders: string[], map: maplibregl.Map, gl: WebGLRenderingContext) {
     super(shaders, map, gl);
     this.init();
   }

@@ -2,7 +2,7 @@ import { fetch, ShaderType } from "../util/util.js";
 import AbstractGlLayer from "./AbstractGlLayer.js";
 
 export default abstract class AbstractCustomLayer
-  implements mapboxgl.CustomLayerInterface
+  implements maplibregl.CustomLayerInterface
 {
   id: string;
   type: "custom" = "custom";
@@ -12,9 +12,9 @@ export default abstract class AbstractCustomLayer
 
   layer?: AbstractGlLayer;
 
-  abstract onAdd(map: mapboxgl.Map, gl: WebGLRenderingContext): void;
+  abstract onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void;
 
-  constructor(id: string, map?: mapboxgl.Map) {
+  constructor(id: string, map?: maplibregl.Map) {
     this.id = id;
 
     if (map) {
@@ -22,7 +22,7 @@ export default abstract class AbstractCustomLayer
     }
   }
 
-  addTo(map: mapboxgl.Map): void {
+  addTo(map: maplibregl.Map): void {
     map.on("load", () => map.addLayer(this));
   }
 
@@ -35,14 +35,14 @@ export default abstract class AbstractCustomLayer
     delete this.layer;
   }
 
-  prerender(gl: WebGLRenderingContext, matrix: number[]): void {
+  prerender(gl: WebGLRenderingContext, matrix: any): void {
     if (this.visible && this.layer && this.layer.prerender) {
       this.layer.gl = gl;
       this.layer.prerender(matrix);
     }
   }
 
-  render(gl: WebGLRenderingContext, matrix: number[]): void {
+  render(gl: WebGLRenderingContext, matrix: any): void {
     if (this.visible && this.layer) {
       this.layer.gl = gl;
       this.layer.render(matrix);
@@ -50,7 +50,7 @@ export default abstract class AbstractCustomLayer
   }
 
   protected addListener(
-    map: mapboxgl.Map,
+    map: maplibregl.Map,
     events: string[],
     func: () => void
   ): void {

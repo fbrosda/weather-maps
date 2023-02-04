@@ -6,6 +6,8 @@
     "rootDir": ".",
     "target": "es2015",
     "module": "es2015",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
 
     "strict": true,
     "noImplicitReturns": true,

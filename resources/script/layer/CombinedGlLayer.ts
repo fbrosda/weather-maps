@@ -1,4 +1,4 @@
-declare let mapboxgl: typeof import("mapbox-gl");
+declare let maplibregl: typeof import("maplibre-gl");
 
 import AbstractGlLayer from "./AbstractGlLayer.js";
 import ExtProgram from "../util/ExtProgram.js";
@@ -45,7 +45,7 @@ export default class GlLayer extends AbstractGlLayer {
   cloudTexture: WebGLTexture[] = [];
   windMix = 0;
 
-  constructor(shaders: string[], map: mapboxgl.Map, gl: WebGLRenderingContext) {
+  constructor(shaders: string[], map: maplibregl.Map, gl: WebGLRenderingContext) {
     super(shaders, map, gl);
     this.init();
   }
@@ -228,8 +228,8 @@ export default class GlLayer extends AbstractGlLayer {
     const seed = Math.random();
 
     const bounds = this.map.getBounds();
-    const nw = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
-    const se = mapboxgl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
+    const nw = maplibregl.MercatorCoordinate.fromLngLat(bounds.getNorthWest());
+    const se = maplibregl.MercatorCoordinate.fromLngLat(bounds.getSouthEast());
 
     // update colors
     this.updateParticleColors(gl, this.updateColorProgram, seed, {

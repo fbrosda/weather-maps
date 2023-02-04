@@ -10,7 +10,6 @@ RUN mkdir dist/
 RUN cp -t dist/ package.json package-lock.json
 RUN npm install --production --prefix=dist/
 
-COPY .accessToken.txt .
 COPY src/ ./src
 COPY resources/ ./resources
 RUN npm run build

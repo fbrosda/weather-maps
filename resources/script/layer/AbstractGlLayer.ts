@@ -1,14 +1,14 @@
 import ExtProgram from "../util/ExtProgram.js";
 
 export default abstract class AbstractGlLayer {
-  map: mapboxgl.Map;
+  map: maplibregl.Map;
   gl: WebGLRenderingContext;
   shaders: string[];
 
   prerender?(matrix: number[]): void;
   abstract render(matrix: number[]): void;
 
-  constructor(shaders: string[], map: mapboxgl.Map, gl: WebGLRenderingContext) {
+  constructor(shaders: string[], map: maplibregl.Map, gl: WebGLRenderingContext) {
     this.map = map;
     this.gl = gl;
     this.shaders = shaders;
