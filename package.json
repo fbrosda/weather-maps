@@ -19,7 +19,7 @@
   "dependencies": {
     "install": "^0.13.0",
     "lookpath": "^1.2.2",
-    "npm": "^9.4.1",
+    "npm": "^10.5.2",
     "pngjs": "^6.0.0",
     "typescript-language-server": "^3.0.3"
   },
