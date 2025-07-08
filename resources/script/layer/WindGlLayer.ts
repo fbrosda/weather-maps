@@ -2,6 +2,7 @@ declare let maplibregl: typeof import("maplibre-gl");
 
 import AbstractGlLayer from "./AbstractGlLayer.js";
 import ExtProgram from "../util/ExtProgram.js";
+import { mat4 } from "gl-matrix";
 import { loadImage, fetch } from "../util/util.js";
 
 type WindInfo = {
@@ -86,7 +87,7 @@ export default class GlLayer extends AbstractGlLayer {
     );
   }
 
-  prerender(matrix: number[]): void {
+  prerender(matrix: mat4): void {
     if (!this.windData.length || this.isZoom) {
       return;
     }
@@ -160,7 +161,7 @@ export default class GlLayer extends AbstractGlLayer {
     }
   }
 
-  private drawParticles(matrix: number[]): void {
+  private drawParticles(matrix: mat4): void {
     const gl = this.gl;
 
     if (this.drawProgram && this.windData.length) {

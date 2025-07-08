@@ -1,3 +1,4 @@
+import { mat4 } from "gl-matrix";
 import ExtProgram from "../util/ExtProgram.js";
 
 export default abstract class AbstractGlLayer {
@@ -5,8 +6,8 @@ export default abstract class AbstractGlLayer {
   gl: WebGLRenderingContext;
   shaders: string[];
 
-  prerender?(matrix: number[]): void;
-  abstract render(matrix: number[]): void;
+  prerender?(matrix: mat4): void;
+  abstract render(matrix: mat4): void;
 
   constructor(shaders: string[], map: maplibregl.Map, gl: WebGLRenderingContext) {
     this.map = map;

@@ -1,5 +1,6 @@
 declare let maplibregl: typeof import("maplibre-gl");
 
+import { mat4 } from "gl-matrix";
 import AbstractGlLayer from "./AbstractGlLayer.js";
 import AbstractCustomLayer from "./AbstractCustomLayer.js";
 import ExtProgram from "../util/ExtProgram.js";
@@ -33,7 +34,7 @@ class GlLayer extends AbstractGlLayer {
     );
   }
 
-  render(matrix: number[]): void {
+  render(matrix: mat4): void {
     if (!this.program) {
       return;
     }

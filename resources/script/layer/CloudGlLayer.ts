@@ -1,5 +1,6 @@
 import AbstractGlLayer from "./AbstractGlLayer.js";
 import ExtProgram from "../util/ExtProgram.js";
+import { mat4 } from "gl-matrix";
 import { loadImage, fetch } from "../util/util.js";
 
 type CloudInfo = {
@@ -42,7 +43,7 @@ export default class GlLayer extends AbstractGlLayer {
     // this.clear();
   }
 
-  render(matrix: number[]): void {
+  render(matrix: mat4): void {
     if (!this.cloudData.length) {
       return;
     }

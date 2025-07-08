@@ -1,3 +1,4 @@
+import { CustomRenderMethodInput } from "maplibre-gl";
 import { fetch, ShaderType } from "../util/util.js";
 import AbstractGlLayer from "./AbstractGlLayer.js";
 
@@ -35,17 +36,17 @@ export default abstract class AbstractCustomLayer
     delete this.layer;
   }
 
-  prerender(gl: WebGLRenderingContext, matrix: any): void {
+  prerender(gl: WebGLRenderingContext, args: CustomRenderMethodInput): void {
     if (this.visible && this.layer && this.layer.prerender) {
       this.layer.gl = gl;
-      this.layer.prerender(matrix);
+      this.layer.prerender(args.defaultProjectionData.mainMatrix);
     }
   }
 
-  render(gl: WebGLRenderingContext, matrix: any): void {
+  render(gl: WebGLRenderingContext, args: CustomRenderMethodInput): void {
     if (this.visible && this.layer) {
       this.layer.gl = gl;
-      this.layer.render(matrix);
+      this.layer.render(args.defaultProjectionData.mainMatrix);
     }
   }
 
